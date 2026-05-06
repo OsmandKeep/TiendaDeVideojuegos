@@ -26,5 +26,5 @@ class MainActivity : ComponentActivity() {
 }
 
 fun App (){
-    
+
 }
