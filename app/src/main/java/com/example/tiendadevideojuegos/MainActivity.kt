@@ -40,14 +40,3 @@ class MainActivity : ComponentActivity() {
 fun App (){
     Text("solo sirve para concetar las pantallas")
 }
-
-@Composable
-fun HomeScreen() {
-    Column(
-        modifier = Modifier.fillMaxSize().padding(16.dp),
-        horizontalAlignment = Alignment.CenterHorizontally
-    ) {
-        Text("Pantalla de Inicio")
-        Text("Bienvenido a la tienda de videojuegos")
-    }
-}
