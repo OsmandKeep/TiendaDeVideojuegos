@@ -24,7 +24,7 @@ class MainActivity : ComponentActivity() {
         }
     }
 }
-
+@Composable
 fun App (){
-
+    Text("solo sirve para concetar las pantallas")
 }
