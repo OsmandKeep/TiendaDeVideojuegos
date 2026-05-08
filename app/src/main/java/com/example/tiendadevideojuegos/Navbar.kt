@@ -1,0 +1,58 @@
+package com.example.tiendadevideojuegos
+
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.padding
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Home
+import androidx.compose.material.icons.filled.ShoppingCart
+import androidx.compose.material.icons.filled.VideogameAsset
+import androidx.compose.material3.Icon
+import androidx.compose.material3.NavigationBar
+import androidx.compose.material3.NavigationBarItem
+import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Text
+import androidx.compose.runtime.Composable
+import androidx.compose.ui.Modifier
+import com.example.tiendadevideojuegos.HomeScreen
+import com.example.tiendadevideojuegos.LibraryScreen
+import com.example.tiendadevideojuegos.CartScreen
+
+@Composable
+fun SimpleNavBar(
+    currentScreen: Int,
+    onScreenChange: (Int) -> Unit
+) {
+    Scaffold(
+        bottomBar = {
+            NavigationBar {
+                NavigationBarItem(
+                    selected = currentScreen == 0,
+                    onClick = { onScreenChange(0) },
+                    icon = { Icon(Icons.Default.Home, contentDescription = "Inicio") },
+                    label = { Text("Inicio") }
+                )
+                NavigationBarItem(
+                    selected = currentScreen == 1,
+                    onClick = { onScreenChange(1) },
+                    icon = { Icon(Icons.Default.ShoppingCart, contentDescription = "Carrito") },
+                    label = { Text("Carrito") }
+                )
+                NavigationBarItem(
+                    selected = currentScreen == 2,
+                    onClick = { onScreenChange(2) },
+                    icon = { Icon(Icons.Default.VideogameAsset, contentDescription = "Biblioteca") },
+                    label = { Text("Biblioteca") }
+                )
+            }
+        }
+    ) { innerPadding ->
+        Box(modifier = Modifier.fillMaxSize().padding(innerPadding)) {
+            when (currentScreen) {
+                0 -> HomeScreen()
+                1 -> CartScreen()
+                2 -> LibraryScreen()
+            }
+        }
+    }
+}
