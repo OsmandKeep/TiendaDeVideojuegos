@@ -7,4 +7,3 @@ import androidx.compose.runtime.Composable
 fun CartScreen() {
     Text("Tu carrito está vacío")
 }
-
