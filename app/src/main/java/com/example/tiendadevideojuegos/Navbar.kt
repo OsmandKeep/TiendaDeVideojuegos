@@ -39,7 +39,7 @@ fun SimpleNavBar(
                     unselectedIconColor = MaterialTheme.colorScheme.secondary,
                     unselectedTextColor = MaterialTheme.colorScheme.secondary,
 
-                    indicatorColor = MaterialTheme.colorScheme.secondaryContainer.copy(alpha = 0.5f)
+                    indicatorColor = MaterialTheme.colorScheme.secondaryContainer.copy(alpha = 0.9f)
                 )
 
                 NavigationBarItem(
