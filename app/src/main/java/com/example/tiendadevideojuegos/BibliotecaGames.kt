@@ -51,7 +51,7 @@ fun LibraryScreen() {
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.spacedBy(8.dp)
         ) {
-            Icon(Icons.Default.BookmarkBorder, contentDescription = null, tint = MaterialTheme.colorScheme.primary)
+            Icon(Icons.Default.BookmarkBorder, contentDescription = null, tint = MaterialTheme.colorScheme.primary, modifier = Modifier.size(40.dp))
             Surface(
                 modifier = Modifier.weight(1f).height(40.dp),
                 color = MaterialTheme.colorScheme.surfaceVariant,
