@@ -26,7 +26,7 @@ import com.example.tiendadevideojuegos.LibraryScreen
 import com.example.tiendadevideojuegos.CartScreen
 
 @Composable
-fun SimpleNavBar(
+fun SimpleNavBar (
     currentScreen: Int,
     onScreenChange: (Int) -> Unit
 ) {

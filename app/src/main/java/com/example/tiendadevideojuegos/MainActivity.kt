@@ -4,20 +4,11 @@ import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.padding
-import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Text
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.setValue
-import androidx.compose.ui.Alignment
+import androidx.compose.material3.*
+import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.tooling.preview.Preview
-import androidx.compose.ui.unit.dp
 import com.example.tiendadevideojuegos.ui.theme.TiendaDeVideojuegosTheme
 
 class MainActivity : ComponentActivity() {
@@ -26,17 +17,60 @@ class MainActivity : ComponentActivity() {
         enableEdgeToEdge()
         setContent {
             TiendaDeVideojuegosTheme {
-                var selectedTab by remember { mutableStateOf(0) }
-
-                SimpleNavBar(
-                    currentScreen = selectedTab,
-                    onScreenChange = { selectedTab = it }
-                )
+                MainApp()
             }
         }
     }
 }
+
 @Composable
-fun App (){
-    Text("solo sirve para concetar las pantallas")
+fun MainApp() {
+    var isLoggedIn by remember { mutableStateOf(false) }
+
+    if (!isLoggedIn) {
+        AppNavigation(onLoginSuccess = { isLoggedIn = true })
+    } else {
+        MainAppContent()
+    }
+}
+
+@Composable
+fun AppNavigation(onLoginSuccess: () -> Unit) {
+    var currentScreen by remember { mutableStateOf("login") }
+
+    when (currentScreen) {
+        "login" -> LoginScreen(
+            onLoginClick = { onLoginSuccess() },
+            onRegisterClick = { currentScreen = "register" },
+            onForgotClick = { currentScreen = "forgot" }
+        )
+        "register" -> RegisterScreen(onBackToLogin = { currentScreen = "login" })
+        "forgot" -> ForgotPasswordScreen(onBackToLogin = { currentScreen = "login" })
+    }
+}
+
+@Composable
+fun MainAppContent() {
+    var selectedTab by remember { mutableStateOf(0) }
+
+    Scaffold(
+        bottomBar = {
+            // Aquí va la barra (está bien)
+            SimpleNavBar(
+                currentScreen = selectedTab,
+                onScreenChange = { selectedTab = it }
+            )
+        }
+    ) { innerPadding ->
+        Box(modifier = Modifier.padding(innerPadding)) {
+            when (selectedTab) {
+                // ERROR CORREGIDO: Aquí debes llamar a tu pantalla de inicio,
+                // no a la barra de navegación otra vez.
+                0 -> MenuPrincipal()
+                1 -> CartScreen()
+                2 -> Text("Favoritos")
+                3 -> Text("Perfil")
+            }
+        }
+    }
 }
