@@ -3,6 +3,7 @@ package com.example.tiendadevideojuegos
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.ShoppingCart
@@ -18,6 +19,8 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.unit.dp
 import com.example.tiendadevideojuegos.HomeScreen
 import com.example.tiendadevideojuegos.LibraryScreen
 import com.example.tiendadevideojuegos.CartScreen
@@ -47,7 +50,8 @@ fun SimpleNavBar(
                     onClick = { onScreenChange(0) },
                     icon = {
                         Icon(
-                            imageVector = Icons.Default.Home,
+                            painter = painterResource(R.drawable.iconomenugato),
+                            modifier = Modifier.size(30.dp),
                             contentDescription = "Inicio"
                         )
                     },
@@ -73,7 +77,8 @@ fun SimpleNavBar(
                     onClick = { onScreenChange(2) },
                     icon = {
                         Icon(
-                            imageVector = Icons.Default.VideogameAsset,
+                            painter = painterResource(R.drawable.iconobibliotecagato),
+                            modifier = Modifier.size(30.dp),
                             contentDescription = "Biblioteca"
                         )
                     },
