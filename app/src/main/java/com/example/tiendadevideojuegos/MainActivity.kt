@@ -55,7 +55,6 @@ fun MainAppContent() {
 
     Scaffold(
         bottomBar = {
-            // Aquí va la barra (está bien)
             SimpleNavBar(
                 currentScreen = selectedTab,
                 onScreenChange = { selectedTab = it }
@@ -64,8 +63,7 @@ fun MainAppContent() {
     ) { innerPadding ->
         Box(modifier = Modifier.padding(innerPadding)) {
             when (selectedTab) {
-                // ERROR CORREGIDO: Aquí debes llamar a tu pantalla de inicio,
-                // no a la barra de navegación otra vez.
+
                 0 -> MenuPrincipal()
                 1 -> CartScreen()
                 2 -> Text("Favoritos")

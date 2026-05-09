@@ -198,7 +198,6 @@ fun RegisterScreen(
     }
 }
 
-// --- COMPONENTES AUXILIARES ---
 
 @Composable
 fun SectionHeader(text: String, color: Color) {

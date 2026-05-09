@@ -202,7 +202,6 @@ fun ForgotPasswordScreen(
             }
 
             3 -> {
-                // Uso del color TERCIARIO para indicar éxito en la verificación (como en los descuentos)
                 Card(
                     modifier = Modifier.fillMaxWidth(),
                     colors = CardDefaults.cardColors(containerColor = colores.tertiaryContainer)
@@ -256,7 +255,6 @@ fun ForgotPasswordScreen(
 
         Spacer(modifier = Modifier.weight(1f))
 
-        // Indicador de pasos dinámico con colores del tema
         Row(
             modifier = Modifier.padding(vertical = 32.dp),
             horizontalArrangement = Arrangement.Center
