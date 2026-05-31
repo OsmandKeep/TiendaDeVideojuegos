@@ -1,0 +1,39 @@
+{
+  "project_info": {
+    "project_number": "719472098503",
+    "project_id": "my-firebase-project-8016b",
+    "storage_bucket": "my-firebase-project-8016b.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:719472098503:android:fd9f6c07526a372547d2e2",
+        "android_client_info": {
+          "package_name": "com.example.tiendadevideojuegos"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "719472098503-k38tgekfbrmgbcu27ao6ccon63bhvi85.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyD3Ut0y2J5t-6-qj7XuC8cDPelXr-xFV3A"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "719472098503-k38tgekfbrmgbcu27ao6ccon63bhvi85.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
