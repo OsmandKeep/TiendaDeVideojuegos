@@ -5,9 +5,12 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
+import androidx.compose.material.icons.filled.Visibility
+import androidx.compose.material.icons.filled.VisibilityOff
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -15,7 +18,9 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
+import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 // IMPORTS DE FIREBASE
@@ -28,12 +33,16 @@ fun RegisterScreen(
     onBackToLogin: () -> Unit
 ) {
     // Variables de estado
-    var nametag by remember { mutableStateOf("") } // NUEVO CAMPO
+    var nametag by remember { mutableStateOf("") }
     var nombre by remember { mutableStateOf("") }
     var apellidoPaterno by remember { mutableStateOf("") }
     var email by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
     var confirmPassword by remember { mutableStateOf("") }
+
+    // Estados de visibilidad de contraseñas
+    var isPasswordVisible by remember { mutableStateOf(false) }
+    var isConfirmPasswordVisible by remember { mutableStateOf(false) }
 
     // Estados para selects
     var dia by remember { mutableStateOf("") }
@@ -47,10 +56,6 @@ fun RegisterScreen(
     val context = LocalContext.current
     val colores = MaterialTheme.colorScheme
     val auth = remember { FirebaseAuth.getInstance() }
-
-    val generos = listOf("Masculino", "Femenino", "Otro", "Prefiero no decir")
-    val meses = listOf("Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio",
-        "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre")
 
     Column(
         modifier = Modifier
@@ -102,7 +107,7 @@ fun RegisterScreen(
 
         Spacer(modifier = Modifier.height(24.dp))
 
-        // --- SECCIÓN: FECHA DE NACIMIENTO (Simplificada para el ejemplo) ---
+        // --- SECCIÓN: FECHA DE NACIMIENTO ---
         Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
             CustomOutlinedField(value = dia, onValueChange = { if (it.length <= 2) dia = it }, label = "Día", modifier = Modifier.weight(1f), colores = colores)
             CustomOutlinedField(value = año, onValueChange = { if (it.length <= 4) año = it }, label = "Año", modifier = Modifier.weight(1f), colores = colores)
@@ -115,10 +120,48 @@ fun RegisterScreen(
         Spacer(modifier = Modifier.height(12.dp))
 
         CustomOutlinedField(value = email, onValueChange = { email = it }, label = "Correo electrónico", colores = colores)
+
         Spacer(modifier = Modifier.height(12.dp))
-        CustomOutlinedField(value = password, onValueChange = { password = it }, label = "Contraseña", visualTransformation = PasswordVisualTransformation(), colores = colores)
+
+        // Campo Contraseña con Botón de Ojo y sin Sugerencias
+        CustomOutlinedField(
+            value = password,
+            onValueChange = { password = it },
+            label = "Contraseña",
+            visualTransformation = if (isPasswordVisible) VisualTransformation.None else PasswordVisualTransformation(),
+            colores = colores,
+            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password, autoCorrectEnabled = false),
+            trailingIcon = {
+                IconButton(onClick = { isPasswordVisible = !isPasswordVisible }) {
+                    Icon(
+                        imageVector = if (isPasswordVisible) Icons.Default.Visibility else Icons.Default.VisibilityOff,
+                        contentDescription = "Control de visibilidad",
+                        tint = colores.primary
+                    )
+                }
+            }
+        )
+
         Spacer(modifier = Modifier.height(12.dp))
-        CustomOutlinedField(value = confirmPassword, onValueChange = { confirmPassword = it }, label = "Confirmar contraseña", visualTransformation = PasswordVisualTransformation(), colores = colores)
+
+        // Campo Confirmar Contraseña con Botón de Ojo y sin Sugerencias
+        CustomOutlinedField(
+            value = confirmPassword,
+            onValueChange = { confirmPassword = it },
+            label = "Confirmar contraseña",
+            visualTransformation = if (isConfirmPasswordVisible) VisualTransformation.None else PasswordVisualTransformation(),
+            colores = colores,
+            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password, autoCorrectEnabled = false),
+            trailingIcon = {
+                IconButton(onClick = { isConfirmPasswordVisible = !isConfirmPasswordVisible }) {
+                    Icon(
+                        imageVector = if (isConfirmPasswordVisible) Icons.Default.Visibility else Icons.Default.VisibilityOff,
+                        contentDescription = "Control de visibilidad",
+                        tint = colores.primary
+                    )
+                }
+            }
+        )
 
         Spacer(modifier = Modifier.height(40.dp))
 
@@ -134,18 +177,16 @@ fun RegisterScreen(
                                     if (task.isSuccessful) {
                                         val user = auth.currentUser
 
-                                        // 1. Guardar el NAMETAG en el perfil de Firebase
                                         val profileUpdates = userProfileChangeRequest {
                                             displayName = nametag
                                         }
 
                                         user?.updateProfile(profileUpdates)?.addOnCompleteListener {
-                                            // 2. Enviar correo de verificación
                                             user.sendEmailVerification().addOnCompleteListener { verifyTask ->
                                                 isLoading = false
                                                 if (verifyTask.isSuccessful) {
                                                     Toast.makeText(context, "Registro exitoso. ¡Revisa tu correo para verificar tu cuenta!", Toast.LENGTH_LONG).show()
-                                                    auth.signOut() // Cerramos sesión hasta que verifique
+                                                    auth.signOut()
                                                     onBackToLogin()
                                                 } else {
                                                     Toast.makeText(context, "Error al enviar verificación.", Toast.LENGTH_SHORT).show()
@@ -183,7 +224,6 @@ fun RegisterScreen(
     }
 }
 
-// Los componentes SectionHeader y CustomOutlinedField se mantienen igual que los tenías...
 @Composable
 fun SectionHeader(text: String, color: Color) {
     Text(
@@ -202,7 +242,9 @@ fun CustomOutlinedField(
     label: String,
     colores: ColorScheme,
     modifier: Modifier = Modifier,
-    visualTransformation: androidx.compose.ui.text.input.VisualTransformation = androidx.compose.ui.text.input.VisualTransformation.None,
+    visualTransformation: VisualTransformation = VisualTransformation.None,
+    keyboardOptions: KeyboardOptions = KeyboardOptions.Default,
+    trailingIcon: @Composable (() -> Unit)? = null,
     placeholder: String = ""
 ) {
     OutlinedTextField(
@@ -213,6 +255,8 @@ fun CustomOutlinedField(
         singleLine = true,
         placeholder = { if (placeholder.isNotEmpty()) Text(placeholder) },
         visualTransformation = visualTransformation,
+        keyboardOptions = keyboardOptions,
+        trailingIcon = trailingIcon,
         colors = OutlinedTextFieldDefaults.colors(
             focusedBorderColor = colores.primary,
             focusedLabelColor = colores.primary,

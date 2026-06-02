@@ -15,6 +15,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
+import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.res.painterResource
@@ -22,6 +23,8 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.Lock
 import androidx.compose.material.icons.filled.CheckCircle
+import androidx.compose.material.icons.filled.Visibility
+import androidx.compose.material.icons.filled.VisibilityOff
 
 // Imports de Firebase necesarios
 import com.google.firebase.auth.FirebaseAuth
@@ -38,6 +41,9 @@ fun LoginScreen(
     var password by remember { mutableStateOf("") }
     var isCaptchaChecked by remember { mutableStateOf(false) }
     var isLoading by remember { mutableStateOf(false) }
+
+    // Estado para controlar la visibilidad de la contraseña
+    var isPasswordVisible by remember { mutableStateOf(false) }
 
     val context = LocalContext.current
     val colores = MaterialTheme.colorScheme
@@ -91,7 +97,7 @@ fun LoginScreen(
 
         Spacer(modifier = Modifier.height(16.dp))
 
-        // --- CAMPO DE CONTRASEÑA ---
+        // --- CAMPO DE CONTRASEÑA (Con botón Ojo y Sin sugerencias) ---
         OutlinedTextField(
             value = password,
             onValueChange = { password = it },
@@ -101,7 +107,16 @@ fun LoginScreen(
             leadingIcon = {
                 Icon(Icons.Default.Lock, contentDescription = null, tint = colores.primary)
             },
-            visualTransformation = PasswordVisualTransformation(),
+            trailingIcon = {
+                IconButton(onClick = { isPasswordVisible = !isPasswordVisible }) {
+                    Icon(
+                        imageVector = if (isPasswordVisible) Icons.Default.Visibility else Icons.Default.VisibilityOff,
+                        contentDescription = if (isPasswordVisible) "Ocultar contraseña" else "Mostrar contraseña",
+                        tint = colores.primary
+                    )
+                }
+            },
+            visualTransformation = if (isPasswordVisible) VisualTransformation.None else PasswordVisualTransformation(),
             keyboardOptions = KeyboardOptions(
                 keyboardType = KeyboardType.Password,
                 autoCorrectEnabled = false
@@ -153,20 +168,17 @@ fun LoginScreen(
                     isLoading = true
                     val emailInput = username.trim()
 
-                    // Intento directo de autenticación
                     auth.signInWithEmailAndPassword(emailInput, password)
                         .addOnCompleteListener { loginTask ->
                             if (loginTask.isSuccessful) {
                                 val usuarioActual = auth.currentUser
 
-                                // Forzamos actualización de estado por si el link se activó desde spam
                                 usuarioActual?.reload()?.addOnCompleteListener { reloadTask ->
                                     if (usuarioActual != null && usuarioActual.isEmailVerified) {
                                         isLoading = false
                                         Toast.makeText(context, "¡Bienvenido de nuevo!", Toast.LENGTH_SHORT).show()
                                         onLoginClick()
                                     } else {
-                                        // Credenciales correctas pero falta confirmar el enlace
                                         usuarioActual?.sendEmailVerification()
                                         auth.signOut()
                                         isLoading = false
@@ -181,7 +193,6 @@ fun LoginScreen(
                                 isLoading = false
                                 val exception = loginTask.exception
 
-                                // Manejo controlado y descriptivo de errores de credenciales
                                 val mensajePersonalizado = when {
                                     exception is FirebaseNetworkException -> {
                                         "No hay conexión a internet. Verifica tu red"
