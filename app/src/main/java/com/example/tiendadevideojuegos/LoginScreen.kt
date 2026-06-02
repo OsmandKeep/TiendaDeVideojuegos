@@ -9,6 +9,7 @@ import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
+import androidx.compose.runtime.saveable.rememberSaveable // <--- IMPORTADO PARA SOBREVIVIR A CAMBIOS DE TEMA
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
@@ -37,13 +38,14 @@ fun LoginScreen(
     onForgotClick: () -> Unit,
     onLoginClick: () -> Unit
 ) {
-    var username by remember { mutableStateOf("") }
-    var password by remember { mutableStateOf("") }
-    var isCaptchaChecked by remember { mutableStateOf(false) }
-    var isLoading by remember { mutableStateOf(false) }
+    // Cambiados a rememberSaveable para mantener el texto
+    var username by rememberSaveable { mutableStateOf("") }
+    var password by rememberSaveable { mutableStateOf("") }
+    var isCaptchaChecked by rememberSaveable { mutableStateOf(false) }
+    var isLoading by rememberSaveable { mutableStateOf(false) }
 
-    // Estado para controlar la visibilidad de la contraseña
-    var isPasswordVisible by remember { mutableStateOf(false) }
+    // Estado para controlar la visibilidad de la contraseña salvable
+    var isPasswordVisible by rememberSaveable { mutableStateOf(false) }
 
     val context = LocalContext.current
     val colores = MaterialTheme.colorScheme

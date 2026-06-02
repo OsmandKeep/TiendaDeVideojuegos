@@ -9,6 +9,7 @@ import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
+import androidx.compose.runtime.saveable.rememberSaveable // <--- IMPORTADO PARA SOBREVIVIR A CAMBIOS DE TEMA
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
@@ -30,8 +31,9 @@ import com.google.firebase.FirebaseNetworkException
 fun ForgotPasswordScreen(
     onBackToLogin: () -> Unit
 ) {
-    var email by remember { mutableStateOf("") }
-    var isLoading by remember { mutableStateOf(false) }
+    // Cambiados a rememberSaveable para que el correo y el estado de carga no se pierdan al cambiar de tema
+    var email by rememberSaveable { mutableStateOf("") }
+    var isLoading by rememberSaveable { mutableStateOf(false) }
 
     val context = LocalContext.current
     val colores = MaterialTheme.colorScheme

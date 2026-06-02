@@ -8,8 +8,12 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.unit.dp
 import com.example.tiendadevideojuegos.ui.theme.TiendaDeVideojuegosTheme
+// IMPORT DE FIREBASE
+import com.google.firebase.auth.FirebaseAuth
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -25,18 +29,27 @@ class MainActivity : ComponentActivity() {
 
 @Composable
 fun MainApp() {
-    var isLoggedIn by remember { mutableStateOf(false) }
+    val auth = remember { FirebaseAuth.getInstance() }
+
+    // TRUCO: Si el usuario ya existe localmente y está verificado, entra directo
+    var isLoggedIn by remember {
+        mutableStateOf(auth.currentUser != null && auth.currentUser!!.isEmailVerified)
+    }
 
     if (!isLoggedIn) {
         AppNavigation(onLoginSuccess = { isLoggedIn = true })
     } else {
-        MainAppContent()
+        // Le pasamos la función de cerrar sesión para que pueda regresar al Login
+        MainAppContent(onLogout = {
+            auth.signOut()
+            isLoggedIn = false
+        })
     }
 }
 
 @Composable
 fun AppNavigation(onLoginSuccess: () -> Unit) {
-    var currentScreen by remember { mutableStateOf("login") }
+    var currentScreen by rememberSaveable { mutableStateOf("login") }
 
     when (currentScreen) {
         "login" -> LoginScreen(
@@ -50,8 +63,8 @@ fun AppNavigation(onLoginSuccess: () -> Unit) {
 }
 
 @Composable
-fun MainAppContent() {
-    var selectedTab by remember { mutableStateOf(0) }
+fun MainAppContent(onLogout: () -> Unit) {
+    var selectedTab by rememberSaveable { mutableStateOf(0) }
 
     Scaffold(
         bottomBar = {
@@ -63,11 +76,17 @@ fun MainAppContent() {
     ) { innerPadding ->
         Box(modifier = Modifier.padding(innerPadding)) {
             when (selectedTab) {
-
-                0 -> MenuPrincipal()
+                0 -> MenuPrincipal() // Tu contenedor de pantallas principales
                 1 -> CartScreen()
                 2 -> Text("Favoritos")
-                3 -> Text("Perfil")
+                3 -> {
+                    // Pantalla de Perfil optimizada con botón de Cerrar Sesión
+                    Box(modifier = Modifier.padding(16.dp)) {
+                        Button(onClick = onLogout) {
+                            Text("CERRAR SESIÓN")
+                        }
+                    }
+                }
             }
         }
     }

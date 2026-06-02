@@ -13,6 +13,7 @@ import androidx.compose.material.icons.filled.Visibility
 import androidx.compose.material.icons.filled.VisibilityOff
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
+import androidx.compose.runtime.saveable.rememberSaveable // <--- IMPORTADO PARA SOBREVIVIR A CAMBIOS DE TEMA
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -32,26 +33,26 @@ import com.google.firebase.auth.userProfileChangeRequest
 fun RegisterScreen(
     onBackToLogin: () -> Unit
 ) {
-    // Variables de estado
-    var nametag by remember { mutableStateOf("") }
-    var nombre by remember { mutableStateOf("") }
-    var apellidoPaterno by remember { mutableStateOf("") }
-    var email by remember { mutableStateOf("") }
-    var password by remember { mutableStateOf("") }
-    var confirmPassword by remember { mutableStateOf("") }
+    // Variables de estado cambiadas a rememberSaveable
+    var nametag by rememberSaveable { mutableStateOf("") }
+    var nombre by rememberSaveable { mutableStateOf("") }
+    var apellidoPaterno by rememberSaveable { mutableStateOf("") }
+    var email by rememberSaveable { mutableStateOf("") }
+    var password by rememberSaveable { mutableStateOf("") }
+    var confirmPassword by rememberSaveable { mutableStateOf("") }
 
-    // Estados de visibilidad de contraseñas
-    var isPasswordVisible by remember { mutableStateOf(false) }
-    var isConfirmPasswordVisible by remember { mutableStateOf(false) }
+    // Estados de visibilidad de contraseñas salvables
+    var isPasswordVisible by rememberSaveable { mutableStateOf(false) }
+    var isConfirmPasswordVisible by rememberSaveable { mutableStateOf(false) }
 
-    // Estados para selects
-    var dia by remember { mutableStateOf("") }
-    var mes by remember { mutableStateOf("") }
-    var año by remember { mutableStateOf("") }
-    var genero by remember { mutableStateOf("") }
+    // Estados para selects salvables
+    var dia by rememberSaveable { mutableStateOf("") }
+    var mes by rememberSaveable { mutableStateOf("") }
+    var año by rememberSaveable { mutableStateOf("") }
+    var genero by rememberSaveable { mutableStateOf("") }
 
-    // Estado de carga
-    var isLoading by remember { mutableStateOf(false) }
+    // Estado de carga salvable
+    var isLoading by rememberSaveable { mutableStateOf(false) }
 
     val context = LocalContext.current
     val colores = MaterialTheme.colorScheme
