@@ -23,7 +23,7 @@ import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.Lock
 import androidx.compose.material.icons.filled.CheckCircle
 
-// Imports de Firebase
+// Imports de Firebase necesarios
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.FirebaseNetworkException
 
@@ -91,7 +91,7 @@ fun LoginScreen(
 
         Spacer(modifier = Modifier.height(16.dp))
 
-        // --- CAMPO DE CONTRASEÑA (Sin sugerencias de texto) ---
+        // --- CAMPO DE CONTRASEÑA ---
         OutlinedTextField(
             value = password,
             onValueChange = { password = it },
@@ -153,65 +153,51 @@ fun LoginScreen(
                     isLoading = true
                     val emailInput = username.trim()
 
-                    // PASO 1: Comprobar primero si el correo existe en Firebase
-                    auth.fetchSignInMethodsForEmail(emailInput)
-                        .addOnCompleteListener { fetchTask ->
-                            if (fetchTask.isSuccessful) {
-                                val signInMethods = fetchTask.result?.signInMethods
+                    // Intento directo de autenticación
+                    auth.signInWithEmailAndPassword(emailInput, password)
+                        .addOnCompleteListener { loginTask ->
+                            if (loginTask.isSuccessful) {
+                                val usuarioActual = auth.currentUser
 
-                                if (signInMethods.isNullOrEmpty()) {
-                                    // El correo no está registrado en el sistema
-                                    isLoading = false
-                                    Toast.makeText(
-                                        context,
-                                        "No se encontró ningún usuario con este correo",
-                                        Toast.LENGTH_LONG
-                                    ).show()
-                                } else {
-                                    // PASO 2: El correo existe, ahora validamos contraseña
-                                    auth.signInWithEmailAndPassword(emailInput, password)
-                                        .addOnCompleteListener { loginTask ->
-                                            if (loginTask.isSuccessful) {
-                                                val usuarioActual = auth.currentUser
-
-                                                // PASO 3: Validación del enlace de verificación
-                                                if (usuarioActual != null && usuarioActual.isEmailVerified) {
-                                                    isLoading = false
-                                                    Toast.makeText(context, "¡Bienvenido de nuevo!", Toast.LENGTH_SHORT).show()
-                                                    onLoginClick()
-                                                } else {
-                                                    // Contraseña correcta pero no verificado
-                                                    usuarioActual?.sendEmailVerification()
-                                                    auth.signOut()
-                                                    isLoading = false
-                                                    Toast.makeText(
-                                                        context,
-                                                        "Por favor, confirma tu correo electrónico antes de iniciar sesión. Te hemos enviado un enlace de activación.",
-                                                        Toast.LENGTH_LONG
-                                                    ).show()
-                                                }
-                                            } else {
-                                                isLoading = false
-                                                // Si el correo existía pero falló el login, la contraseña está mal
-                                                val mensajePersonalizado = when (loginTask.exception) {
-                                                    is FirebaseNetworkException -> {
-                                                        "No hay conexión a internet. Verifica tu red"
-                                                    }
-                                                    else -> {
-                                                        "La contraseña introducida es incorrecta"
-                                                    }
-                                                }
-                                                Toast.makeText(context, mensajePersonalizado, Toast.LENGTH_LONG).show()
-                                            }
-                                        }
+                                // Forzamos actualización de estado por si el link se activó desde spam
+                                usuarioActual?.reload()?.addOnCompleteListener { reloadTask ->
+                                    if (usuarioActual != null && usuarioActual.isEmailVerified) {
+                                        isLoading = false
+                                        Toast.makeText(context, "¡Bienvenido de nuevo!", Toast.LENGTH_SHORT).show()
+                                        onLoginClick()
+                                    } else {
+                                        // Credenciales correctas pero falta confirmar el enlace
+                                        usuarioActual?.sendEmailVerification()
+                                        auth.signOut()
+                                        isLoading = false
+                                        Toast.makeText(
+                                            context,
+                                            "Por favor, confirma tu correo electrónico antes de iniciar sesión. Te hemos enviado un enlace de activación.",
+                                            Toast.LENGTH_LONG
+                                        ).show()
+                                    }
                                 }
                             } else {
                                 isLoading = false
-                                Toast.makeText(
-                                    context,
-                                    "Error al verificar la cuenta: ${fetchTask.exception?.localizedMessage}",
-                                    Toast.LENGTH_LONG
-                                ).show()
+                                val exception = loginTask.exception
+
+                                // Manejo controlado y descriptivo de errores de credenciales
+                                val mensajePersonalizado = when {
+                                    exception is FirebaseNetworkException -> {
+                                        "No hay conexión a internet. Verifica tu red"
+                                    }
+                                    exception?.message?.contains("USER_NOT_FOUND", ignoreCase = true) == true -> {
+                                        "No se encontró ningún usuario con este correo"
+                                    }
+                                    exception?.message?.contains("WRONG_PASSWORD", ignoreCase = true) == true ||
+                                            exception is com.google.firebase.auth.FirebaseAuthInvalidCredentialsException -> {
+                                        "La contraseña introducida es incorrecta o el usuario no existe"
+                                    }
+                                    else -> {
+                                        "Credenciales inválidas o usuario no registrado"
+                                    }
+                                }
+                                Toast.makeText(context, mensajePersonalizado, Toast.LENGTH_LONG).show()
                             }
                         }
                 } else {

@@ -18,26 +18,35 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+// IMPORTS DE FIREBASE
+import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.auth.userProfileChangeRequest
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun RegisterScreen(
     onBackToLogin: () -> Unit
 ) {
-    // Variables de estado para los campos
+    // Variables de estado
+    var nametag by remember { mutableStateOf("") } // NUEVO CAMPO
     var nombre by remember { mutableStateOf("") }
     var apellidoPaterno by remember { mutableStateOf("") }
-    var apellidoMaterno by remember { mutableStateOf("") }
-    var dia by remember { mutableStateOf("") }
-    var mes by remember { mutableStateOf("") }
-    var año by remember { mutableStateOf("") }
-    var genero by remember { mutableStateOf("") }
     var email by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
     var confirmPassword by remember { mutableStateOf("") }
 
+    // Estados para selects
+    var dia by remember { mutableStateOf("") }
+    var mes by remember { mutableStateOf("") }
+    var año by remember { mutableStateOf("") }
+    var genero by remember { mutableStateOf("") }
+
+    // Estado de carga
+    var isLoading by remember { mutableStateOf(false) }
+
     val context = LocalContext.current
     val colores = MaterialTheme.colorScheme
+    val auth = remember { FirebaseAuth.getInstance() }
 
     val generos = listOf("Masculino", "Femenino", "Otro", "Prefiero no decir")
     val meses = listOf("Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio",
@@ -51,45 +60,33 @@ fun RegisterScreen(
             .padding(24.dp),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        // Botón de navegación superior
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.Start,
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            TextButton(
-                onClick = onBackToLogin,
-                contentPadding = PaddingValues(start = 0.dp)
-            ) {
-                Icon(
-                    imageVector = Icons.Default.ArrowBack,
-                    contentDescription = null,
-                    tint = colores.primary,
-                    modifier = Modifier.size(18.dp)
-                )
+        // Botón Volver
+        Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.Start) {
+            TextButton(onClick = onBackToLogin) {
+                Icon(Icons.Default.ArrowBack, contentDescription = null, modifier = Modifier.size(18.dp))
                 Spacer(modifier = Modifier.width(8.dp))
-                Text(
-                    text = "Volver al Login",
-                    fontSize = 14.sp,
-                    color = colores.primary
-                )
+                Text("Volver al Login", color = colores.primary)
             }
         }
 
-        Text(
-            text = "Crear Cuenta",
-            fontSize = 32.sp,
-            fontWeight = FontWeight.ExtraBold,
-            color = colores.onBackground
-        )
-
-        Text(
-            text = "Completa tus datos para registrarte",
-            fontSize = 14.sp,
-            color = colores.onSurfaceVariant
-        )
+        Text(text = "Crear Cuenta", fontSize = 32.sp, fontWeight = FontWeight.ExtraBold, color = colores.onBackground)
+        Text(text = "Únete a la comunidad de ByteMasters", fontSize = 14.sp, color = colores.onSurfaceVariant)
 
         Spacer(modifier = Modifier.height(32.dp))
+
+        // --- SECCIÓN: IDENTIDAD EN LA TIENDA ---
+        SectionHeader(text = "Tu Identidad Gamer", color = colores.primary)
+        Spacer(modifier = Modifier.height(12.dp))
+
+        CustomOutlinedField(
+            value = nametag,
+            onValueChange = { nametag = it },
+            label = "Nametag (Nombre de usuario)",
+            colores = colores,
+            placeholder = "Ej: PlayerOne_99"
+        )
+
+        Spacer(modifier = Modifier.height(24.dp))
 
         // --- SECCIÓN: INFORMACIÓN PERSONAL ---
         SectionHeader(text = "Información Personal", color = colores.primary)
@@ -100,105 +97,93 @@ fun RegisterScreen(
         Spacer(modifier = Modifier.height(12.dp))
 
         Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-            CustomOutlinedField(value = apellidoPaterno, onValueChange = { apellidoPaterno = it }, label = "Ap. Paterno", modifier = Modifier.weight(1f), colores = colores)
-            CustomOutlinedField(value = apellidoMaterno, onValueChange = { apellidoMaterno = it }, label = "Ap. Materno", modifier = Modifier.weight(1f), colores = colores)
+            CustomOutlinedField(value = apellidoPaterno, onValueChange = { apellidoPaterno = it }, label = "Apellido", modifier = Modifier.weight(1f), colores = colores)
         }
 
         Spacer(modifier = Modifier.height(24.dp))
 
-        // --- SECCIÓN: FECHA DE NACIMIENTO ---
-        SectionHeader(text = "Fecha de Nacimiento", color = colores.primary)
-        Spacer(modifier = Modifier.height(12.dp))
-
+        // --- SECCIÓN: FECHA DE NACIMIENTO (Simplificada para el ejemplo) ---
         Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-            CustomOutlinedField(value = dia, onValueChange = { if (it.length <= 2) dia = it }, label = "Día", modifier = Modifier.weight(0.8f), colores = colores, placeholder = "31")
-
-            var expandedMes by remember { mutableStateOf(false) }
-            Box(modifier = Modifier.weight(1.5f)) {
-                OutlinedTextField(
-                    value = mes,
-                    onValueChange = {},
-                    readOnly = true,
-                    label = { Text("Mes") },
-                    trailingIcon = { IconButton(onClick = { expandedMes = true }) { Text("▼", fontSize = 10.sp, color = colores.primary) } },
-                    colors = OutlinedTextFieldDefaults.colors(focusedBorderColor = colores.primary, focusedLabelColor = colores.primary)
-                )
-                DropdownMenu(expanded = expandedMes, onDismissRequest = { expandedMes = false }) {
-                    meses.forEach { item -> DropdownMenuItem(text = { Text(item) }, onClick = { mes = item; expandedMes = false }) }
-                }
-            }
-
-            CustomOutlinedField(value = año, onValueChange = { if (it.length <= 4) año = it }, label = "Año", modifier = Modifier.weight(1f), colores = colores, placeholder = "1999")
+            CustomOutlinedField(value = dia, onValueChange = { if (it.length <= 2) dia = it }, label = "Día", modifier = Modifier.weight(1f), colores = colores)
+            CustomOutlinedField(value = año, onValueChange = { if (it.length <= 4) año = it }, label = "Año", modifier = Modifier.weight(1f), colores = colores)
         }
 
         Spacer(modifier = Modifier.height(24.dp))
 
-        // --- SECCIÓN: GÉNERO ---
-        SectionHeader(text = "Género", color = colores.primary)
-        var expandedGenero by remember { mutableStateOf(false) }
-        Box(modifier = Modifier.fillMaxWidth().padding(top = 8.dp)) {
-            OutlinedTextField(
-                value = genero,
-                onValueChange = {},
-                readOnly = true,
-                label = { Text("Selecciona tu género") },
-                modifier = Modifier.fillMaxWidth(),
-                trailingIcon = { IconButton(onClick = { expandedGenero = true }) { Text("▼", fontSize = 10.sp, color = colores.primary) } },
-                colors = OutlinedTextFieldDefaults.colors(focusedBorderColor = colores.primary, focusedLabelColor = colores.primary)
-            )
-            DropdownMenu(expanded = expandedGenero, onDismissRequest = { expandedGenero = false }, modifier = Modifier.fillMaxWidth(0.8f)) {
-                generos.forEach { item -> DropdownMenuItem(text = { Text(item) }, onClick = { genero = item; expandedGenero = false }) }
-            }
-        }
-
-        Spacer(modifier = Modifier.height(24.dp))
-        HorizontalDivider(color = colores.surfaceVariant, thickness = 1.dp)
-        Spacer(modifier = Modifier.height(24.dp))
-
-        // --- SECCIÓN: INFORMACIÓN DE CUENTA ---
-        SectionHeader(text = "Información de Cuenta", color = colores.primary)
+        // --- SECCIÓN: CUENTA ---
+        SectionHeader(text = "Seguridad de la Cuenta", color = colores.primary)
         Spacer(modifier = Modifier.height(12.dp))
 
         CustomOutlinedField(value = email, onValueChange = { email = it }, label = "Correo electrónico", colores = colores)
-
         Spacer(modifier = Modifier.height(12.dp))
-
         CustomOutlinedField(value = password, onValueChange = { password = it }, label = "Contraseña", visualTransformation = PasswordVisualTransformation(), colores = colores)
-
         Spacer(modifier = Modifier.height(12.dp))
-
         CustomOutlinedField(value = confirmPassword, onValueChange = { confirmPassword = it }, label = "Confirmar contraseña", visualTransformation = PasswordVisualTransformation(), colores = colores)
 
         Spacer(modifier = Modifier.height(40.dp))
 
-        // --- BOTÓN DE REGISTRO ---
+        // --- LÓGICA DE REGISTRO ---
         Button(
             onClick = {
-                if (nombre.isNotEmpty() && email.isNotEmpty() && password == confirmPassword && password.length >= 6) {
-                    Toast.makeText(context, "¡Registro exitoso! Bienvenido $nombre", Toast.LENGTH_LONG).show()
-                    onBackToLogin()
+                if (email.isNotEmpty() && password.isNotEmpty() && nametag.isNotEmpty()) {
+                    if (password == confirmPassword) {
+                        if (password.length >= 6) {
+                            isLoading = true
+                            auth.createUserWithEmailAndPassword(email.trim(), password)
+                                .addOnCompleteListener { task ->
+                                    if (task.isSuccessful) {
+                                        val user = auth.currentUser
+
+                                        // 1. Guardar el NAMETAG en el perfil de Firebase
+                                        val profileUpdates = userProfileChangeRequest {
+                                            displayName = nametag
+                                        }
+
+                                        user?.updateProfile(profileUpdates)?.addOnCompleteListener {
+                                            // 2. Enviar correo de verificación
+                                            user.sendEmailVerification().addOnCompleteListener { verifyTask ->
+                                                isLoading = false
+                                                if (verifyTask.isSuccessful) {
+                                                    Toast.makeText(context, "Registro exitoso. ¡Revisa tu correo para verificar tu cuenta!", Toast.LENGTH_LONG).show()
+                                                    auth.signOut() // Cerramos sesión hasta que verifique
+                                                    onBackToLogin()
+                                                } else {
+                                                    Toast.makeText(context, "Error al enviar verificación.", Toast.LENGTH_SHORT).show()
+                                                }
+                                            }
+                                        }
+                                    } else {
+                                        isLoading = false
+                                        Toast.makeText(context, "Error: ${task.exception?.localizedMessage}", Toast.LENGTH_LONG).show()
+                                    }
+                                }
+                        } else {
+                            Toast.makeText(context, "La contraseña debe tener al menos 6 caracteres", Toast.LENGTH_SHORT).show()
+                        }
+                    } else {
+                        Toast.makeText(context, "Las contraseñas no coinciden", Toast.LENGTH_SHORT).show()
+                    }
                 } else {
-                    Toast.makeText(context, "Por favor, verifica tus datos", Toast.LENGTH_SHORT).show()
+                    Toast.makeText(context, "Por favor llena todos los campos", Toast.LENGTH_SHORT).show()
                 }
             },
             modifier = Modifier.fillMaxWidth().height(55.dp),
+            enabled = !isLoading,
             shape = RoundedCornerShape(8.dp),
             colors = ButtonDefaults.buttonColors(containerColor = colores.primary)
         ) {
-            Text("REGISTRARME", fontWeight = FontWeight.Bold, fontSize = 16.sp)
-        }
-
-        Spacer(modifier = Modifier.height(16.dp))
-
-        TextButton(onClick = onBackToLogin) {
-            Text("¿Ya tienes cuenta? Inicia sesión", color = colores.secondary)
+            if (isLoading) {
+                CircularProgressIndicator(color = Color.White, modifier = Modifier.size(24.dp))
+            } else {
+                Text("REGISTRARME Y VERIFICAR", fontWeight = FontWeight.Bold, fontSize = 16.sp)
+            }
         }
 
         Spacer(modifier = Modifier.height(32.dp))
     }
 }
 
-
+// Los componentes SectionHeader y CustomOutlinedField se mantienen igual que los tenías...
 @Composable
 fun SectionHeader(text: String, color: Color) {
     Text(
