@@ -70,4 +70,5 @@ dependencies {
     // Also add the dependency for the Google Play services library and specify its version
     implementation("com.google.android.gms:play-services-auth:21.5.1")
     implementation("androidx.lifecycle:lifecycle-viewmodel-compose:2.8.2")
+    implementation("io.coil-kt:coil-compose:2.6.0")
 }

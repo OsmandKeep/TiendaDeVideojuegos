@@ -2,6 +2,8 @@ package com.example.tiendadevideojuegos
 
 import androidx.compose.foundation.*
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.lazy.LazyRow // <--- IMPORTANTE PARA EL CARRUSEL HORIZONTAL
+import androidx.compose.foundation.lazy.items // <--- IMPORTANTE PARA RECORRER LAS CAPTURAS
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
@@ -15,11 +17,15 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.ContentScale // <--- IMPORTANTE PARA ESCALAR IMÁGENES
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+
+// LIBRERÍA COIL PARA CARGAR URLS DE INTERNET
+import coil.compose.AsyncImage
 
 // IMPORTS CORREGIDOS PARA EL VIEWMODEL
 import androidx.lifecycle.viewmodel.compose.viewModel
@@ -50,9 +56,11 @@ fun GameDetailScreen(
                 .background(colores.background)
                 .verticalScroll(rememberScrollState())
         ) {
-            // Aquí llamará al StoreTopSection que ya tienes en tus otros archivos
             StoreTopSection(colores)
 
+            // ==========================================
+            // MODIFICACIÓN 1: BANNER PRINCIPAL DINÁMICO
+            // ==========================================
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -61,12 +69,22 @@ fun GameDetailScreen(
                     .clip(RoundedCornerShape(16.dp))
                     .background(colores.surfaceVariant)
             ) {
-                Icon(
-                    Icons.Default.Gamepad,
-                    contentDescription = null,
-                    modifier = Modifier.fillMaxSize().padding(40.dp),
-                    tint = colores.onSurfaceVariant.copy(alpha = 0.3f)
-                )
+                // Si la URL está vacía en Firebase, muestra un control por defecto; si tiene enlace, carga la foto real
+                if (juego!!.imagenUrl.isEmpty()) {
+                    Icon(
+                        Icons.Default.Gamepad,
+                        contentDescription = null,
+                        modifier = Modifier.fillMaxSize().padding(40.dp),
+                        tint = colores.onSurfaceVariant.copy(alpha = 0.3f)
+                    )
+                } else {
+                    AsyncImage(
+                        model = juego!!.imagenUrl,
+                        contentDescription = "Banner de ${juego!!.titulo}",
+                        modifier = Modifier.fillMaxSize(),
+                        contentScale = ContentScale.Crop
+                    )
+                }
 
                 Text(
                     text = juego!!.titulo,
@@ -132,21 +150,39 @@ fun GameDetailScreen(
 
                 Spacer(modifier = Modifier.height(20.dp))
 
-                Row(modifier = Modifier.fillMaxWidth()) {
-                    Box(
-                        modifier = Modifier.weight(1.2f).height(150.dp).clip(RoundedCornerShape(8.dp)).background(Color.Black),
-                        contentAlignment = Alignment.Center
-                    ) {
-                        Icon(Icons.Default.PlayCircle, contentDescription = null, tint = Color.White, modifier = Modifier.size(40.dp))
-                        Icon(Icons.Default.ChevronLeft, null, tint = Color.White, modifier = Modifier.align(Alignment.CenterStart))
-                        Icon(Icons.Default.ChevronRight, null, tint = Color.White, modifier = Modifier.align(Alignment.CenterEnd))
-                    }
+                // ==========================================
+                // MODIFICACIÓN 2: DESCRIPCIÓN ABAJO Y CARRUSEL DESLIZABLE
+                // ==========================================
+                Column(modifier = Modifier.fillMaxWidth()) {
+                    Text("Descripción:", fontWeight = FontWeight.Bold)
+                    Spacer(modifier = Modifier.height(4.dp))
+                    Text(text = juego!!.descripcion, fontSize = 13.sp)
 
-                    Spacer(modifier = Modifier.width(12.dp))
+                    // Si Firestore contiene capturas de pantalla, las dibuja en un carrusel
+                    if (juego!!.capturas.isNotEmpty()) {
+                        Spacer(modifier = Modifier.height(20.dp))
+                        Text("Capturas de pantalla:", fontWeight = FontWeight.Bold, fontSize = 14.sp)
+                        Spacer(modifier = Modifier.height(8.dp))
 
-                    Column(modifier = Modifier.weight(1f)) {
-                        Text("Descripción:", fontWeight = FontWeight.Bold)
-                        Text(text = juego!!.descripcion, fontSize = 13.sp)
+                        LazyRow(
+                            horizontalArrangement = Arrangement.spacedBy(12.dp),
+                            modifier = Modifier.fillMaxWidth().height(150.dp)
+                        ) {
+                            items(juego!!.capturas) { urlCaptura ->
+                                Card(
+                                    shape = RoundedCornerShape(12.dp),
+                                    modifier = Modifier.width(260.dp).fillMaxHeight(),
+                                    colors = CardDefaults.cardColors(containerColor = colores.surfaceVariant)
+                                ) {
+                                    AsyncImage(
+                                        model = urlCaptura,
+                                        contentDescription = "Captura de pantalla",
+                                        modifier = Modifier.fillMaxSize(),
+                                        contentScale = ContentScale.Crop
+                                    )
+                                }
+                            }
+                        }
                     }
                 }
 

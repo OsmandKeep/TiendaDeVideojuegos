@@ -9,6 +9,8 @@ data class Videojuego(
     val descripcion: String = "",
     val requisitos: String = "",
     val etiquetas: List<String> = emptyList(),
-    val likes: String = "0",
-    val dislikes: String = "0"
+    val likes: String = "",
+    val dislikes: String = "",
+    val imagenUrl: String = "", // <--- AGREGA ESTA LÍNEA
+    val capturas: List<String> = emptyList()
 )
