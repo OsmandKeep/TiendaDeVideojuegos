@@ -27,6 +27,7 @@ import androidx.compose.ui.unit.sp
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.userProfileChangeRequest
 import com.google.firebase.firestore.FirebaseFirestore
+import java.util.Calendar
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -52,6 +53,12 @@ fun RegisterScreen(
     val context = LocalContext.current
     val colores = MaterialTheme.colorScheme
     val auth = remember { FirebaseAuth.getInstance() }
+
+    // Obtención de la fecha actual del sistema para las validaciones dinámicas
+    val calendarioActual = Calendar.getInstance()
+    val añoActual = calendarioActual.get(Calendar.YEAR)
+    val mesActual = calendarioActual.get(Calendar.MONTH) + 1
+    val diaActual = calendarioActual.get(Calendar.DAY_OF_MONTH)
 
     Column(
         modifier = Modifier
@@ -90,19 +97,80 @@ fun RegisterScreen(
         SectionHeader(text = "Información Personal", color = colores.primary)
         Spacer(modifier = Modifier.height(12.dp))
 
-        CustomOutlinedField(value = nombre, onValueChange = { nombre = it }, label = "Nombre(s)", colores = colores)
+        // Filtro estricto: Solo permite letras y espacios en el Nombre
+        CustomOutlinedField(
+            value = nombre,
+            onValueChange = { input ->
+                if (input.all { it.isLetter() || it.isWhitespace() }) {
+                    nombre = input
+                }
+            },
+            label = "Nombre(s)",
+            colores = colores
+        )
 
         Spacer(modifier = Modifier.height(12.dp))
 
-        CustomOutlinedField(value = apellidoPaterno, onValueChange = { apellidoPaterno = it }, label = "Apellido Paterno", colores = colores)
+        // Filtro estricto: Solo permite letras y espacios en el Apellido
+        CustomOutlinedField(
+            value = apellidoPaterno,
+            onValueChange = { input ->
+                if (input.all { it.isLetter() || it.isWhitespace() }) {
+                    apellidoPaterno = input
+                }
+            },
+            label = "Apellido Paterno",
+            colores = colores
+        )
 
         Spacer(modifier = Modifier.height(12.dp))
 
-        // Fila unificada para la fecha de nacimiento (Día, Mes, Año)
+        // Fila unificada para la fecha de nacimiento
         Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-            CustomOutlinedField(value = dia, onValueChange = { if (it.length <= 2) dia = it }, label = "Día", modifier = Modifier.weight(1f), colores = colores, keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number))
-            CustomOutlinedField(value = mes, onValueChange = { if (it.length <= 2) mes = it }, label = "Mes", modifier = Modifier.weight(1f), colores = colores, keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number))
-            CustomOutlinedField(value = año, onValueChange = { if (it.length <= 4) año = it }, label = "Año", modifier = Modifier.weight(1.2f), colores = colores, keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number))
+            CustomOutlinedField(
+                value = dia,
+                onValueChange = { input ->
+                    if (input.length <= 2 && input.all { it.isDigit() }) {
+                        val num = input.toIntOrNull()
+                        if (num == null || num in 1..31) {
+                            dia = input
+                        }
+                    }
+                },
+                label = "Día",
+                modifier = Modifier.weight(1f),
+                colores = colores,
+                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number)
+            )
+
+            CustomOutlinedField(
+                value = mes,
+                onValueChange = { input ->
+                    if (input.length <= 2 && input.all { it.isDigit() }) {
+                        val num = input.toIntOrNull()
+                        if (num == null || num in 1..12) {
+                            mes = input
+                        }
+                    }
+                },
+                label = "Mes",
+                modifier = Modifier.weight(1f),
+                colores = colores,
+                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number)
+            )
+
+            CustomOutlinedField(
+                value = año,
+                onValueChange = { input ->
+                    if (input.length <= 4 && input.all { it.isDigit() }) {
+                        año = input
+                    }
+                },
+                label = "Año",
+                modifier = Modifier.weight(1.2f),
+                colores = colores,
+                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number)
+            )
         }
 
         Spacer(modifier = Modifier.height(24.dp))
@@ -117,7 +185,7 @@ fun RegisterScreen(
         CustomOutlinedField(
             value = password,
             onValueChange = { password = it },
-            label = "Contraseña",
+            label = "Contraseña (Mín. 8 caracteres)",
             visualTransformation = if (isPasswordVisible) VisualTransformation.None else PasswordVisualTransformation(),
             colores = colores,
             keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password, autoCorrect = false),
@@ -156,9 +224,37 @@ fun RegisterScreen(
 
         Button(
             onClick = {
-                if (email.isNotEmpty() && password.isNotEmpty() && nametag.isNotEmpty() && nombre.isNotEmpty() && apellidoPaterno.isNotEmpty()) {
+                if (email.isNotEmpty() && password.isNotEmpty() && nametag.isNotEmpty() && nombre.isNotEmpty() && apellidoPaterno.isNotEmpty() && dia.isNotEmpty() && mes.isNotEmpty() && año.isNotEmpty()) {
+
+                    val d = dia.toInt()
+                    val m = mes.toInt()
+                    val a = año.toInt()
+
+                    if (a < (añoActual - 120) || a > añoActual) {
+                        Toast.makeText(context, "Por favor introduce un año válido coherente.", Toast.LENGTH_SHORT).show()
+                        return@Button
+                    }
+
+                    val maximosDiasDelMes = when (m) {
+                        2 -> if ((a % 4 == 0 && a % 100 != 0) || (a % 400 == 0)) 29 else 28
+                        4, 6, 9, 11 -> 30
+                        else -> 31
+                    }
+
+                    if (d > maximosDiasDelMes) {
+                        Toast.makeText(context, "El mes seleccionado solo tiene hasta $maximosDiasDelMes días.", Toast.LENGTH_SHORT).show()
+                        return@Button
+                    }
+
+                    if (a == añoActual) {
+                        if (m > mesActual || (m == mesActual && d > diaActual)) {
+                            Toast.makeText(context, "La fecha de nacimiento no puede ser una fecha futura.", Toast.LENGTH_SHORT).show()
+                            return@Button
+                        }
+                    }
+
                     if (password == confirmPassword) {
-                        if (password.length >= 6) {
+                        if (password.length >= 8) {
                             isLoading = true
                             auth.createUserWithEmailAndPassword(email.trim(), password)
                                 .addOnCompleteListener { task ->
@@ -166,13 +262,12 @@ fun RegisterScreen(
                                         val user = auth.currentUser
                                         val uid = user?.uid ?: ""
 
-                                        // Mapeo completo incluyendo apellidos y fecha de nacimiento estructurada
                                         val datosUsuario = hashMapOf(
                                             "id" to uid,
                                             "nombre" to nombre.trim(),
                                             "apellido" to apellidoPaterno.trim(),
                                             "nametag" to nametag.trim(),
-                                            "fechaNacimiento" to "$dia/$mes/$año",
+                                            "fechaNacimiento" to "$d/$m/$a",
                                             "deseados" to emptyList<String>(),
                                             "carrito" to emptyList<String>(),
                                             "biblioteca" to emptyList<String>()
@@ -210,7 +305,7 @@ fun RegisterScreen(
                                     }
                                 }
                         } else {
-                            Toast.makeText(context, "La contraseña debe tener al menos 6 caracteres", Toast.LENGTH_SHORT).show()
+                            Toast.makeText(context, "La contraseña debe tener al menos 8 caracteres", Toast.LENGTH_SHORT).show()
                         }
                     } else {
                         Toast.makeText(context, "Las contraseñas no coinciden", Toast.LENGTH_SHORT).show()
