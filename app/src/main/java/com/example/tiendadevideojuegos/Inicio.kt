@@ -5,7 +5,7 @@ import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable // <--- IMPORTANTE PARA EL CLICK
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
@@ -32,7 +32,7 @@ import androidx.compose.ui.unit.sp
 
 @Composable
 fun HomeScreen(
-    onGameClick: (String) -> Unit // <--- Callback para avisar qué juego se presionó
+    onGameClick: (String) -> Unit
 ) {
     val colores = MaterialTheme.colorScheme
 
@@ -54,7 +54,6 @@ fun HomeScreen(
                 color = colores.onBackground,
                 modifier = Modifier.padding(vertical = 8.dp)
             )
-            // Le pasamos el callback al carrusel
             NovedadesCarousel(colores, onGameClick)
 
             Spacer(modifier = Modifier.height(24.dp))
@@ -66,7 +65,7 @@ fun HomeScreen(
                 color = colores.onBackground,
                 modifier = Modifier.padding(vertical = 8.dp)
             )
-            RecomendadosCarousel(colores)
+            RecomendadosCarousel(colores, onGameClick)
 
             Spacer(modifier = Modifier.height(24.dp))
         }
@@ -126,7 +125,7 @@ fun StoreTopSection(colores: ColorScheme) {
 @Composable
 fun NovedadesCarousel(colores: ColorScheme, onGameClick: (String) -> Unit) {
     val listaNovedades = listOf(
-        Juego(1, "Mortal Kombat 11", R.drawable.mk11, "mortal_kombat_11"), // <-- Vinculado a tu ID de Firestore
+        Juego(1, "Mortal Kombat 11", R.drawable.mk11, "mortal_kombat_11"),
         Juego(2, "Resident Evil 4", R.drawable.re4, "resident_evil_4"),
         Juego(3, "Sonic Mania", R.drawable.sonicman, "sonic_mania")
     )
@@ -140,7 +139,7 @@ fun NovedadesCarousel(colores: ColorScheme, onGameClick: (String) -> Unit) {
                 modifier = Modifier
                     .width(280.dp)
                     .height(200.dp)
-                    .clickable { onGameClick(juego.firestoreId) }, // <--- DETECTA EL CLICK AQUÍ
+                    .clickable { onGameClick(juego.firestoreId) },
                 colors = CardDefaults.cardColors(containerColor = colores.surfaceVariant)
             ) {
                 Column {
@@ -177,14 +176,15 @@ fun NovedadesCarousel(colores: ColorScheme, onGameClick: (String) -> Unit) {
 }
 
 @Composable
-fun RecomendadosCarousel(colores: ColorScheme) {
+fun RecomendadosCarousel(colores: ColorScheme, onGameClick: (String) -> Unit) {
+    // Se removieron las calificaciones de los objetos de la lista
     val lista = listOf(
-        Recomendado(1, "Clash Royale", "Estrategia", "4.8", R.drawable.clashroyale),
-        Recomendado(2, "Fortnite", "Shooter", "4.9", R.drawable.fortnite),
-        Recomendado(3, "Halo: MCC", "Shooter", "3.9", R.drawable.halo),
-        Recomendado(4, "Elden Ring", "RPG", "4.5", R.drawable.eldenring),
-        Recomendado(5, "Minecraft", "Aventura", "4.7", R.drawable.minecraft),
-        Recomendado(6, "FNAF", "Terror", "4.8", R.drawable.fnaf)
+        Recomendado(1, "Clash Royale", "Estrategia", R.drawable.clashroyale, "clash_royale"),
+        Recomendado(2, "Fortnite", "Shooter", R.drawable.fortnite, "fortnite"),
+        Recomendado(3, "Halo: MCC", "Shooter", R.drawable.halo, "halo_mcc"),
+        Recomendado(4, "Elden Ring", "RPG", R.drawable.eldenring, "elden_ring"),
+        Recomendado(5, "Minecraft", "Aventura", R.drawable.minecraft, "minecraft"),
+        Recomendado(6, "FNAF", "Terror", R.drawable.fnaf, "fnaf")
     )
 
     val columnas = lista.chunked(3)
@@ -195,7 +195,7 @@ fun RecomendadosCarousel(colores: ColorScheme) {
         items(columnas) { columna ->
             Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
                 columna.forEach { app ->
-                    AppItem(app, colores)
+                    AppItem(app, colores, onGameClick)
                 }
             }
         }
@@ -203,9 +203,11 @@ fun RecomendadosCarousel(colores: ColorScheme) {
 }
 
 @Composable
-fun AppItem(app: Recomendado, colores: ColorScheme) {
+fun AppItem(app: Recomendado, colores: ColorScheme, onGameClick: (String) -> Unit) {
     Row(
-        modifier = Modifier.width(300.dp),
+        modifier = Modifier
+            .width(300.dp)
+            .clickable { onGameClick(app.firestoreId) },
         verticalAlignment = Alignment.CenterVertically
     ) {
         Image(
@@ -218,13 +220,10 @@ fun AppItem(app: Recomendado, colores: ColorScheme) {
         Column(modifier = Modifier.weight(1f)) {
             Text(app.titulo, fontWeight = FontWeight.Medium, color = colores.onBackground, maxLines = 1, overflow = TextOverflow.Ellipsis)
             Text(app.categoria, color = colores.onSurfaceVariant, fontSize = 13.sp)
-            Row(verticalAlignment = Alignment.CenterVertically) {
-                Text(app.calificacion, fontSize = 12.sp, color = colores.onSurfaceVariant)
-                Icon(Icons.Default.Star, null, modifier = Modifier.size(12.dp), tint = Color(0xFFFFB300))
-            }
+            // Se eliminó por completo el Row que contenía el texto de calificación y la estrella dorada
         }
         Button(
-            onClick = { },
+            onClick = { onGameClick(app.firestoreId) },
             modifier = Modifier.height(32.dp),
             contentPadding = PaddingValues(horizontal = 12.dp, vertical = 0.dp),
             colors = ButtonDefaults.buttonColors(containerColor = colores.secondaryContainer, contentColor = colores.onSecondaryContainer)
@@ -235,5 +234,6 @@ fun AppItem(app: Recomendado, colores: ColorScheme) {
 }
 
 // Modelos locales actualizados
-data class Juego(val id: Int, val titulo: String, val imagenResId: Int, val firestoreId: String) // <-- Agregado firestoreId
-data class Recomendado(val id: Int, val titulo: String, val categoria: String, val calificacion: String, val iconoResId: Int)
+data class Juego(val id: Int, val titulo: String, val imagenResId: Int, val firestoreId: String)
+// Se removió la propiedad 'calificacion' del modelo
+data class Recomendado(val id: Int, val titulo: String, val categoria: String, val iconoResId: Int, val firestoreId: String)
