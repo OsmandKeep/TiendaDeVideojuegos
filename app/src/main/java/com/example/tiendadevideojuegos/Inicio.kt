@@ -5,6 +5,7 @@ import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable // <--- IMPORTANTE PARA EL CLICK
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
@@ -30,7 +31,9 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 
 @Composable
-fun HomeScreen() {
+fun HomeScreen(
+    onGameClick: (String) -> Unit // <--- Callback para avisar qué juego se presionó
+) {
     val colores = MaterialTheme.colorScheme
 
     Column(
@@ -51,7 +54,8 @@ fun HomeScreen() {
                 color = colores.onBackground,
                 modifier = Modifier.padding(vertical = 8.dp)
             )
-            NovedadesCarousel(colores)
+            // Le pasamos el callback al carrusel
+            NovedadesCarousel(colores, onGameClick)
 
             Spacer(modifier = Modifier.height(24.dp))
 
@@ -120,11 +124,11 @@ fun StoreTopSection(colores: ColorScheme) {
 }
 
 @Composable
-fun NovedadesCarousel(colores: ColorScheme) {
+fun NovedadesCarousel(colores: ColorScheme, onGameClick: (String) -> Unit) {
     val listaNovedades = listOf(
-        Juego(1, "Mortal Kombat 11", R.drawable.mk11),
-        Juego(2, "Resident Evil 4", R.drawable.re4),
-        Juego(3, "Sonic Mania", R.drawable.sonicman)
+        Juego(1, "Mortal Kombat 11", R.drawable.mk11, "mortal_kombat_11"), // <-- Vinculado a tu ID de Firestore
+        Juego(2, "Resident Evil 4", R.drawable.re4, "resident_evil_4"),
+        Juego(3, "Sonic Mania", R.drawable.sonicman, "sonic_mania")
     )
 
     LazyRow(
@@ -133,7 +137,10 @@ fun NovedadesCarousel(colores: ColorScheme) {
         items(listaNovedades) { juego ->
             Card(
                 shape = RoundedCornerShape(16.dp),
-                modifier = Modifier.width(280.dp).height(200.dp),
+                modifier = Modifier
+                    .width(280.dp)
+                    .height(200.dp)
+                    .clickable { onGameClick(juego.firestoreId) }, // <--- DETECTA EL CLICK AQUÍ
                 colors = CardDefaults.cardColors(containerColor = colores.surfaceVariant)
             ) {
                 Column {
@@ -227,5 +234,6 @@ fun AppItem(app: Recomendado, colores: ColorScheme) {
     }
 }
 
-data class Juego(val id: Int, val titulo: String, val imagenResId: Int)
+// Modelos locales actualizados
+data class Juego(val id: Int, val titulo: String, val imagenResId: Int, val firestoreId: String) // <-- Agregado firestoreId
 data class Recomendado(val id: Int, val titulo: String, val categoria: String, val calificacion: String, val iconoResId: Int)

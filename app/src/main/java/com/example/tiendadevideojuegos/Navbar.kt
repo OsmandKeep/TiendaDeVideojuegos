@@ -21,7 +21,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
-import com.example.tiendadevideojuegos.HomeScreen
 import com.example.tiendadevideojuegos.LibraryScreen
 import com.example.tiendadevideojuegos.CartScreen
 
@@ -96,7 +95,8 @@ fun SimpleNavBar (
         ) {
             Box(modifier = Modifier.fillMaxSize()) {
                 when (currentScreen) {
-                    0 -> HomeScreen()
+                    // CAMBIO AQUÍ: Llamamos a MenuPrincipal que ya sabe resolver el click del juego
+                    0 -> MenuPrincipal()
                     1 -> CartScreen()
                     2 -> LibraryScreen()
                 }
