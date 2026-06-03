@@ -89,6 +89,33 @@ class CartViewModel : ViewModel() {
             .update("carrito", emptyList<String>())
     }
 
+    // NUEVO: Procesa la compra moviendo los IDs de "carrito" a "biblioteca" en una transacción atómica
+    fun procesarCompraExitosa(onResultado: (Boolean) -> Unit) {
+        val uid = auth.currentUser?.uid ?: return
+
+        // Obtenemos los IDs actuales del carrito que están cargados en memoria
+        val idsComprados = cartItems.map { it.id }
+        if (idsComprados.isEmpty()) {
+            onResultado(false)
+            return
+        }
+
+        val usuarioRef = db.collection("usuarios").document(uid)
+
+        db.runTransaction { transaction ->
+            // 1. Agrega los IDs de los videojuegos al arreglo "biblioteca" del usuario
+            transaction.update(usuarioRef, "biblioteca", FieldValue.arrayUnion(*idsComprados.toTypedArray()))
+
+            // 2. Vacía por completo el arreglo de "carrito" en el mismo proceso
+            transaction.update(usuarioRef, "carrito", emptyList<String>())
+        }.addOnSuccessListener {
+            cartItems.clear() // Limpia la UI local inmediatamente tras la confirmación de Firestore
+            onResultado(true)
+        }.addOnFailureListener {
+            onResultado(false)
+        }
+    }
+
     // Si destruyen la pantalla por completo, aseguramos liberar la memoria de Firebase
     override fun onCleared() {
         super.onCleared()

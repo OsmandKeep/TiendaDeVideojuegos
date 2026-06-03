@@ -90,11 +90,28 @@ fun CartScreen(
 
             Spacer(modifier = Modifier.height(12.dp))
 
+            // ========================================================
+            // BOTÓN DE ACCIÓN COMPRA TRANSACCIONAL ASOCIADO A BIBLIOTECA
+            // ========================================================
             Button(
                 onClick = {
                     if (cartItems.isNotEmpty()) {
-                        cartViewModel.limpiarCarrito()
-                        Toast.makeText(context, "¡Compra realizada con éxito!", Toast.LENGTH_LONG).show()
+                        // Cambiado para invocar la transacción que muda los juegos a tu nueva LibraryScreen
+                        cartViewModel.procesarCompraExitosa { exitoso ->
+                            if (exitoso) {
+                                Toast.makeText(
+                                    context,
+                                    "¡Compra realizada con éxito! Juegos añadidos a tu biblioteca.",
+                                    Toast.LENGTH_LONG
+                                ).show()
+                            } else {
+                                Toast.makeText(
+                                    context,
+                                    "Hubo un problema al procesar el pago. Inténtalo de nuevo.",
+                                    Toast.LENGTH_LONG
+                                ).show()
+                            }
+                        }
                     }
                 },
                 enabled = cartItems.isNotEmpty(),
@@ -109,6 +126,7 @@ fun CartScreen(
             ) {
                 Text("COMPRAR", fontWeight = FontWeight.ExtraBold, fontSize = 16.sp)
             }
+            // ========================================================
         }
     }
 }
@@ -125,7 +143,6 @@ fun CartItemCard(item: CartItem, onDeleteClick: () -> Unit) {
             .padding(8.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
-        // Renderizado de Imagen dinámica desde la base de datos con Coil
         Box(
             modifier = Modifier
                 .size(70.dp)
