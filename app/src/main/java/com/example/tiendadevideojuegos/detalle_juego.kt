@@ -2,8 +2,8 @@ package com.example.tiendadevideojuegos
 
 import androidx.compose.foundation.*
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.lazy.LazyRow // <--- IMPORTANTE PARA EL CARRUSEL HORIZONTAL
-import androidx.compose.foundation.lazy.items // <--- IMPORTANTE PARA RECORRER LAS CAPTURAS
+import androidx.compose.foundation.lazy.LazyRow
+import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
@@ -17,17 +17,13 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.layout.ContentScale // <--- IMPORTANTE PARA ESCALAR IMÁGENES
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-
-// LIBRERÍA COIL PARA CARGAR URLS DE INTERNET
 import coil.compose.AsyncImage
-
-// IMPORTS CORREGIDOS PARA EL VIEWMODEL
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.tiendadevideojuegos.ViewModel.GameDetailViewModel
 import com.example.tiendadevideojuegos.ui.theme.TiendaDeVideojuegosTheme
@@ -56,20 +52,17 @@ fun GameDetailScreen(
                 .background(colores.background)
                 .verticalScroll(rememberScrollState())
         ) {
-            StoreTopSection(colores)
+            // Se eliminó StoreTopSection(colores) de aquí para evitar la duplicación
 
-            // ==========================================
-            // MODIFICACIÓN 1: BANNER PRINCIPAL DINÁMICO
-            // ==========================================
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(180.dp)
                     .padding(horizontal = 16.dp)
+                    .padding(top = 12.dp) // Pequeño espacio con el TopBar unificado
                     .clip(RoundedCornerShape(16.dp))
                     .background(colores.surfaceVariant)
             ) {
-                // Si la URL está vacía en Firebase, muestra un control por defecto; si tiene enlace, carga la foto real
                 if (juego!!.imagenUrl.isEmpty()) {
                     Icon(
                         Icons.Default.Gamepad,
@@ -150,15 +143,11 @@ fun GameDetailScreen(
 
                 Spacer(modifier = Modifier.height(20.dp))
 
-                // ==========================================
-                // MODIFICACIÓN 2: DESCRIPCIÓN ABAJO Y CARRUSEL DESLIZABLE
-                // ==========================================
                 Column(modifier = Modifier.fillMaxWidth()) {
                     Text("Descripción:", fontWeight = FontWeight.Bold)
                     Spacer(modifier = Modifier.height(4.dp))
                     Text(text = juego!!.descripcion, fontSize = 13.sp)
 
-                    // Si Firestore contiene capturas de pantalla, las dibuja en un carrusel
                     if (juego!!.capturas.isNotEmpty()) {
                         Spacer(modifier = Modifier.height(20.dp))
                         Text("Capturas de pantalla:", fontWeight = FontWeight.Bold, fontSize = 14.sp)
@@ -214,44 +203,6 @@ fun ReseñaCard(count: String, icon: androidx.compose.ui.graphics.vector.ImageVe
             Text(count, fontWeight = FontWeight.Bold)
             Spacer(modifier = Modifier.width(4.dp))
             Icon(icon, null, modifier = Modifier.size(18.dp), tint = color)
-        }
-    }
-}
-
-@Composable
-fun StoreBottomNavBar() {
-    NavigationBar {
-        NavigationBarItem(
-            icon = { Icon(painter = painterResource(R.drawable.iconomenugato), modifier = Modifier.size(30.dp), contentDescription = "Inicio") },
-            label = { Text("Inicio") },
-            selected = true,
-            onClick = {}
-        )
-        NavigationBarItem(
-            icon = { Icon(imageVector = Icons.Default.ShoppingCart, contentDescription = "Tienda") },
-            label = { Text("Tienda") },
-            selected = false,
-            onClick = {}
-        )
-        NavigationBarItem(
-            icon = { Icon(painter = painterResource(R.drawable.iconobibliotecagato), modifier = Modifier.size(30.dp), contentDescription = "Biblioteca") },
-            label = { Text("Biblioteca") },
-            selected = false,
-            onClick = {}
-        )
-    }
-}
-
-@Preview(showBackground = true, device = "id:pixel_7", showSystemUi = true)
-@Composable
-fun GameDetailPreview() {
-    TiendaDeVideojuegosTheme {
-        Scaffold(
-            bottomBar = { StoreBottomNavBar() }
-        ) { padding ->
-            Box(modifier = Modifier.padding(padding)) {
-                GameDetailScreen(gameId = "mortal_kombat_11")
-            }
         }
     }
 }

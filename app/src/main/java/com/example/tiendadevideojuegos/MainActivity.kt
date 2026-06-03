@@ -5,6 +5,7 @@ import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -66,28 +67,10 @@ fun AppNavigation(onLoginSuccess: () -> Unit) {
 fun MainAppContent(onLogout: () -> Unit) {
     var selectedTab by rememberSaveable { mutableStateOf(0) }
 
-    Scaffold(
-        bottomBar = {
-            SimpleNavBar(
-                currentScreen = selectedTab,
-                onScreenChange = { selectedTab = it }
-            )
-        }
-    ) { innerPadding ->
-        Box(modifier = Modifier.padding(innerPadding)) {
-            when (selectedTab) {
-                0 -> MenuPrincipal() // Tu contenedor de pantallas principales
-                1 -> CartScreen()
-                2 -> Text("Favoritos")
-                3 -> {
-                    // Pantalla de Perfil optimizada con botón de Cerrar Sesión
-                    Box(modifier = Modifier.padding(16.dp)) {
-                        Button(onClick = onLogout) {
-                            Text("CERRAR SESIÓN")
-                        }
-                    }
-                }
-            }
-        }
-    }
+    // CORRECCIÓN: Le pasamos los tres parámetros requeridos por tu SimpleNavBar con Drawer
+    SimpleNavBar(
+        currentScreen = selectedTab,
+        onScreenChange = { selectedTab = it },
+        onLogout = onLogout // <-- Pasamos el callback de cierre de sesión hacia el menú lateral
+    )
 }

@@ -42,7 +42,7 @@ fun HomeScreen(
             .background(colores.background)
             .padding(horizontal = 16.dp)
     ) {
-        StoreTopSection(colores)
+        // ELIMINADO: StoreTopSection(colores) ya no se invoca aquí de forma local
 
         Column(modifier = Modifier.verticalScroll(rememberScrollState())) {
             Spacer(modifier = Modifier.height(16.dp))
@@ -69,56 +69,6 @@ fun HomeScreen(
 
             Spacer(modifier = Modifier.height(24.dp))
         }
-    }
-}
-
-@Composable
-fun StoreTopSection(colores: ColorScheme) {
-    Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(vertical = 12.dp),
-        verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.spacedBy(8.dp)
-    ) {
-        Icon(
-            imageVector = Icons.Default.BookmarkBorder,
-            contentDescription = null,
-            tint = colores.primary,
-            modifier = Modifier.size(40.dp)
-        )
-
-        Surface(
-            modifier = Modifier
-                .weight(1f)
-                .height(40.dp),
-            color = colores.surfaceVariant,
-            shape = RoundedCornerShape(20.dp)
-        ) {
-            Row(
-                verticalAlignment = Alignment.CenterVertically,
-                modifier = Modifier.padding(horizontal = 12.dp)
-            ) {
-                Icon(
-                    imageVector = Icons.Default.Search,
-                    contentDescription = null,
-                    modifier = Modifier.size(20.dp)
-                )
-                Text(
-                    text = " Buscar...",
-                    modifier = Modifier.padding(start = 8.dp),
-                    fontSize = 14.sp,
-                    color = colores.onSurfaceVariant
-                )
-            }
-        }
-
-        Icon(
-            imageVector = Icons.Default.AccountCircle,
-            contentDescription = null,
-            tint = colores.primary,
-            modifier = Modifier.size(50.dp)
-        )
     }
 }
 
@@ -177,7 +127,6 @@ fun NovedadesCarousel(colores: ColorScheme, onGameClick: (String) -> Unit) {
 
 @Composable
 fun RecomendadosCarousel(colores: ColorScheme, onGameClick: (String) -> Unit) {
-    // Se removieron las calificaciones de los objetos de la lista
     val lista = listOf(
         Recomendado(1, "Clash Royale", "Estrategia", R.drawable.clashroyale, "clash_royale"),
         Recomendado(2, "Fortnite", "Shooter", R.drawable.fortnite, "fortnite"),
@@ -220,7 +169,6 @@ fun AppItem(app: Recomendado, colores: ColorScheme, onGameClick: (String) -> Uni
         Column(modifier = Modifier.weight(1f)) {
             Text(app.titulo, fontWeight = FontWeight.Medium, color = colores.onBackground, maxLines = 1, overflow = TextOverflow.Ellipsis)
             Text(app.categoria, color = colores.onSurfaceVariant, fontSize = 13.sp)
-            // Se eliminó por completo el Row que contenía el texto de calificación y la estrella dorada
         }
         Button(
             onClick = { onGameClick(app.firestoreId) },
@@ -233,7 +181,6 @@ fun AppItem(app: Recomendado, colores: ColorScheme, onGameClick: (String) -> Uni
     }
 }
 
-// Modelos locales actualizados
+// Modelos locales
 data class Juego(val id: Int, val titulo: String, val imagenResId: Int, val firestoreId: String)
-// Se removió la propiedad 'calificacion' del modelo
 data class Recomendado(val id: Int, val titulo: String, val categoria: String, val iconoResId: Int, val firestoreId: String)

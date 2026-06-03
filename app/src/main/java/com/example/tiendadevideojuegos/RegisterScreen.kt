@@ -13,7 +13,7 @@ import androidx.compose.material.icons.filled.Visibility
 import androidx.compose.material.icons.filled.VisibilityOff
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
-import androidx.compose.runtime.saveable.rememberSaveable // <--- IMPORTADO PARA SOBREVIVIR A CAMBIOS DE TEMA
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -24,16 +24,16 @@ import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-// IMPORTS DE FIREBASE
+// IMPORTS DE FIREBASE ADICIONALES
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.userProfileChangeRequest
+import com.google.firebase.firestore.FirebaseFirestore // <--- IMPORTANTE PARA FIRESTORE
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun RegisterScreen(
     onBackToLogin: () -> Unit
 ) {
-    // Variables de estado cambiadas a rememberSaveable
     var nametag by rememberSaveable { mutableStateOf("") }
     var nombre by rememberSaveable { mutableStateOf("") }
     var apellidoPaterno by rememberSaveable { mutableStateOf("") }
@@ -41,17 +41,14 @@ fun RegisterScreen(
     var password by rememberSaveable { mutableStateOf("") }
     var confirmPassword by rememberSaveable { mutableStateOf("") }
 
-    // Estados de visibilidad de contraseñas salvables
     var isPasswordVisible by rememberSaveable { mutableStateOf(false) }
     var isConfirmPasswordVisible by rememberSaveable { mutableStateOf(false) }
 
-    // Estados para selects salvables
     var dia by rememberSaveable { mutableStateOf("") }
     var mes by rememberSaveable { mutableStateOf("") }
     var año by rememberSaveable { mutableStateOf("") }
     var genero by rememberSaveable { mutableStateOf("") }
 
-    // Estado de carga salvable
     var isLoading by rememberSaveable { mutableStateOf(false) }
 
     val context = LocalContext.current
@@ -66,7 +63,6 @@ fun RegisterScreen(
             .padding(24.dp),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        // Botón Volver
         Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.Start) {
             TextButton(onClick = onBackToLogin) {
                 Icon(Icons.Default.ArrowBack, contentDescription = null, modifier = Modifier.size(18.dp))
@@ -80,7 +76,6 @@ fun RegisterScreen(
 
         Spacer(modifier = Modifier.height(32.dp))
 
-        // --- SECCIÓN: IDENTIDAD EN LA TIENDA ---
         SectionHeader(text = "Tu Identidad Gamer", color = colores.primary)
         Spacer(modifier = Modifier.height(12.dp))
 
@@ -94,7 +89,6 @@ fun RegisterScreen(
 
         Spacer(modifier = Modifier.height(24.dp))
 
-        // --- SECCIÓN: INFORMACIÓN PERSONAL ---
         SectionHeader(text = "Información Personal", color = colores.primary)
         Spacer(modifier = Modifier.height(12.dp))
 
@@ -108,7 +102,6 @@ fun RegisterScreen(
 
         Spacer(modifier = Modifier.height(24.dp))
 
-        // --- SECCIÓN: FECHA DE NACIMIENTO ---
         Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
             CustomOutlinedField(value = dia, onValueChange = { if (it.length <= 2) dia = it }, label = "Día", modifier = Modifier.weight(1f), colores = colores)
             CustomOutlinedField(value = año, onValueChange = { if (it.length <= 4) año = it }, label = "Año", modifier = Modifier.weight(1f), colores = colores)
@@ -116,7 +109,6 @@ fun RegisterScreen(
 
         Spacer(modifier = Modifier.height(24.dp))
 
-        // --- SECCIÓN: CUENTA ---
         SectionHeader(text = "Seguridad de la Cuenta", color = colores.primary)
         Spacer(modifier = Modifier.height(12.dp))
 
@@ -124,7 +116,6 @@ fun RegisterScreen(
 
         Spacer(modifier = Modifier.height(12.dp))
 
-        // Campo Contraseña con Botón de Ojo y sin Sugerencias
         CustomOutlinedField(
             value = password,
             onValueChange = { password = it },
@@ -145,7 +136,6 @@ fun RegisterScreen(
 
         Spacer(modifier = Modifier.height(12.dp))
 
-        // Campo Confirmar Contraseña con Botón de Ojo y sin Sugerencias
         CustomOutlinedField(
             value = confirmPassword,
             onValueChange = { confirmPassword = it },
@@ -166,10 +156,9 @@ fun RegisterScreen(
 
         Spacer(modifier = Modifier.height(40.dp))
 
-        // --- LÓGICA DE REGISTRO ---
         Button(
             onClick = {
-                if (email.isNotEmpty() && password.isNotEmpty() && nametag.isNotEmpty()) {
+                if (email.isNotEmpty() && password.isNotEmpty() && nametag.isNotEmpty() && nombre.isNotEmpty()) {
                     if (password == confirmPassword) {
                         if (password.length >= 6) {
                             isLoading = true
@@ -177,23 +166,49 @@ fun RegisterScreen(
                                 .addOnCompleteListener { task ->
                                     if (task.isSuccessful) {
                                         val user = auth.currentUser
+                                        val uid = user?.uid ?: ""
 
-                                        val profileUpdates = userProfileChangeRequest {
-                                            displayName = nametag
-                                        }
+                                        // ========================================================
+                                        // NUEVO: INICIALIZAR EL DOCUMENTO DEL USUARIO EN FIRESTORE
+                                        // ========================================================
+                                        val datosUsuario = hashMapOf(
+                                            "id" to uid,
+                                            "nombre" to nombre.trim(),
+                                            "nametag" to nametag.trim(),
+                                            "deseados" to emptyList<String>(),
+                                            "carrito" to emptyList<String>(),
+                                            "biblioteca" to emptyList<String>()
+                                        )
 
-                                        user?.updateProfile(profileUpdates)?.addOnCompleteListener {
-                                            user.sendEmailVerification().addOnCompleteListener { verifyTask ->
-                                                isLoading = false
-                                                if (verifyTask.isSuccessful) {
-                                                    Toast.makeText(context, "Registro exitoso. ¡Revisa tu correo para verificar tu cuenta!", Toast.LENGTH_LONG).show()
-                                                    auth.signOut()
-                                                    onBackToLogin()
+                                        val db = FirebaseFirestore.getInstance()
+                                        db.collection("usuarios").document(uid)
+                                            .set(datosUsuario)
+                                            .addOnCompleteListener { firestoreTask ->
+                                                if (firestoreTask.isSuccessful) {
+                                                    // Una vez guardado en la BD, actualizamos el perfil de Auth y mandamos correo
+                                                    val profileUpdates = userProfileChangeRequest {
+                                                        displayName = nametag
+                                                    }
+
+                                                    user?.updateProfile(profileUpdates)?.addOnCompleteListener {
+                                                        user.sendEmailVerification().addOnCompleteListener { verifyTask ->
+                                                            isLoading = false
+                                                            if (verifyTask.isSuccessful) {
+                                                                Toast.makeText(context, "Registro exitoso. ¡Revisa tu correo para verificar tu cuenta!", Toast.LENGTH_LONG).show()
+                                                                auth.signOut()
+                                                                onBackToLogin()
+                                                            } else {
+                                                                Toast.makeText(context, "Error al enviar verificación.", Toast.LENGTH_SHORT).show()
+                                                            }
+                                                        }
+                                                    }
                                                 } else {
-                                                    Toast.makeText(context, "Error al enviar verificación.", Toast.LENGTH_SHORT).show()
+                                                    isLoading = false
+                                                    Toast.makeText(context, "Error al crear perfil en la BD: ${firestoreTask.exception?.localizedMessage}", Toast.LENGTH_LONG).show()
                                                 }
                                             }
-                                        }
+                                        // ========================================================
+
                                     } else {
                                         isLoading = false
                                         Toast.makeText(context, "Error: ${task.exception?.localizedMessage}", Toast.LENGTH_LONG).show()
@@ -206,7 +221,7 @@ fun RegisterScreen(
                         Toast.makeText(context, "Las contraseñas no coinciden", Toast.LENGTH_SHORT).show()
                     }
                 } else {
-                    Toast.makeText(context, "Por favor llena todos los campos", Toast.LENGTH_SHORT).show()
+                    Toast.makeText(context, "Por favor llena todos los campos obligatorios", Toast.LENGTH_SHORT).show()
                 }
             },
             modifier = Modifier.fillMaxWidth().height(55.dp),

@@ -1,7 +1,6 @@
 package com.example.tiendadevideojuegos
 
 import androidx.compose.foundation.background
-import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -49,7 +48,7 @@ fun CartScreen() {
             .background(colores.background)
             .padding(horizontal = 16.dp)
     ) {
-        HeaderSection()
+        // Se eliminó HeaderSection() de aquí para usar el TopBar global
 
         Text(
             text = "Carrito de Compras",
@@ -180,31 +179,5 @@ fun CartItemCard(item: CartItem) {
                 modifier = Modifier.size(20.dp)
             )
         }
-    }
-}
-
-@Composable
-fun HeaderSection() {
-    val colores = MaterialTheme.colorScheme
-
-    Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(vertical = 12.dp),
-        verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.spacedBy(8.dp)
-    ) {
-        Icon(Icons.Default.BookmarkBorder, null, tint = colores.primary, modifier = Modifier.size(40.dp))
-        Surface(
-            modifier = Modifier.weight(1f).height(40.dp),
-            color = colores.surfaceVariant,
-            shape = RoundedCornerShape(20.dp)
-        ) {
-            Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.padding(horizontal = 12.dp)) {
-                Icon(Icons.Default.Search, contentDescription = null, modifier = Modifier.size(20.dp))
-                Text(" Buscar...", modifier = Modifier.padding(start = 8.dp), fontSize = 14.sp)
-            }
-        }
-        Icon(Icons.Default.AccountCircle, null, tint = colores.primary , modifier = Modifier.size(50.dp))
     }
 }

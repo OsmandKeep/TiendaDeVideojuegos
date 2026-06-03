@@ -46,24 +46,7 @@ fun LibraryScreen() {
             .fillMaxSize()
             .padding(horizontal = 16.dp)
     ) {
-        Row(
-            modifier = Modifier.fillMaxWidth().padding(vertical = 12.dp),
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(8.dp)
-        ) {
-            Icon(Icons.Default.BookmarkBorder, contentDescription = null, tint = MaterialTheme.colorScheme.primary, modifier = Modifier.size(40.dp))
-            Surface(
-                modifier = Modifier.weight(1f).height(40.dp),
-                color = MaterialTheme.colorScheme.surfaceVariant,
-                shape = RoundedCornerShape(20.dp)
-            ) {
-                Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.padding(horizontal = 12.dp)) {
-                    Icon(Icons.Default.Search, contentDescription = null, modifier = Modifier.size(20.dp))
-                    Text(" Buscar...", modifier = Modifier.padding(start = 8.dp), fontSize = 14.sp)
-                }
-            }
-            Icon(Icons.Default.AccountCircle, contentDescription = null, tint = MaterialTheme.colorScheme.primary, modifier = Modifier.size(50.dp))
-        }
+        // Se eliminó la barra superior repetida de aquí
 
         Text(
             text = "BIBLIOTECA",
