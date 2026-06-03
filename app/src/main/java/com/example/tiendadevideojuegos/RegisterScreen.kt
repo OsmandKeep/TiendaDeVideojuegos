@@ -24,10 +24,9 @@ import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-// IMPORTS DE FIREBASE ADICIONALES
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.userProfileChangeRequest
-import com.google.firebase.firestore.FirebaseFirestore // <--- IMPORTANTE PARA FIRESTORE
+import com.google.firebase.firestore.FirebaseFirestore
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -47,7 +46,6 @@ fun RegisterScreen(
     var dia by rememberSaveable { mutableStateOf("") }
     var mes by rememberSaveable { mutableStateOf("") }
     var año by rememberSaveable { mutableStateOf("") }
-    var genero by rememberSaveable { mutableStateOf("") }
 
     var isLoading by rememberSaveable { mutableStateOf(false) }
 
@@ -96,15 +94,15 @@ fun RegisterScreen(
 
         Spacer(modifier = Modifier.height(12.dp))
 
-        Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-            CustomOutlinedField(value = apellidoPaterno, onValueChange = { apellidoPaterno = it }, label = "Apellido", modifier = Modifier.weight(1f), colores = colores)
-        }
+        CustomOutlinedField(value = apellidoPaterno, onValueChange = { apellidoPaterno = it }, label = "Apellido Paterno", colores = colores)
 
-        Spacer(modifier = Modifier.height(24.dp))
+        Spacer(modifier = Modifier.height(12.dp))
 
+        // Fila unificada para la fecha de nacimiento (Día, Mes, Año)
         Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-            CustomOutlinedField(value = dia, onValueChange = { if (it.length <= 2) dia = it }, label = "Día", modifier = Modifier.weight(1f), colores = colores)
-            CustomOutlinedField(value = año, onValueChange = { if (it.length <= 4) año = it }, label = "Año", modifier = Modifier.weight(1f), colores = colores)
+            CustomOutlinedField(value = dia, onValueChange = { if (it.length <= 2) dia = it }, label = "Día", modifier = Modifier.weight(1f), colores = colores, keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number))
+            CustomOutlinedField(value = mes, onValueChange = { if (it.length <= 2) mes = it }, label = "Mes", modifier = Modifier.weight(1f), colores = colores, keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number))
+            CustomOutlinedField(value = año, onValueChange = { if (it.length <= 4) año = it }, label = "Año", modifier = Modifier.weight(1.2f), colores = colores, keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number))
         }
 
         Spacer(modifier = Modifier.height(24.dp))
@@ -112,7 +110,7 @@ fun RegisterScreen(
         SectionHeader(text = "Seguridad de la Cuenta", color = colores.primary)
         Spacer(modifier = Modifier.height(12.dp))
 
-        CustomOutlinedField(value = email, onValueChange = { email = it }, label = "Correo electrónico", colores = colores)
+        CustomOutlinedField(value = email, onValueChange = { email = it }, label = "Correo electrónico", colores = colores, keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Email))
 
         Spacer(modifier = Modifier.height(12.dp))
 
@@ -122,7 +120,7 @@ fun RegisterScreen(
             label = "Contraseña",
             visualTransformation = if (isPasswordVisible) VisualTransformation.None else PasswordVisualTransformation(),
             colores = colores,
-            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password, autoCorrectEnabled = false),
+            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password, autoCorrect = false),
             trailingIcon = {
                 IconButton(onClick = { isPasswordVisible = !isPasswordVisible }) {
                     Icon(
@@ -142,7 +140,7 @@ fun RegisterScreen(
             label = "Confirmar contraseña",
             visualTransformation = if (isConfirmPasswordVisible) VisualTransformation.None else PasswordVisualTransformation(),
             colores = colores,
-            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password, autoCorrectEnabled = false),
+            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password, autoCorrect = false),
             trailingIcon = {
                 IconButton(onClick = { isConfirmPasswordVisible = !isConfirmPasswordVisible }) {
                     Icon(
@@ -158,7 +156,7 @@ fun RegisterScreen(
 
         Button(
             onClick = {
-                if (email.isNotEmpty() && password.isNotEmpty() && nametag.isNotEmpty() && nombre.isNotEmpty()) {
+                if (email.isNotEmpty() && password.isNotEmpty() && nametag.isNotEmpty() && nombre.isNotEmpty() && apellidoPaterno.isNotEmpty()) {
                     if (password == confirmPassword) {
                         if (password.length >= 6) {
                             isLoading = true
@@ -168,13 +166,13 @@ fun RegisterScreen(
                                         val user = auth.currentUser
                                         val uid = user?.uid ?: ""
 
-                                        // ========================================================
-                                        // NUEVO: INICIALIZAR EL DOCUMENTO DEL USUARIO EN FIRESTORE
-                                        // ========================================================
+                                        // Mapeo completo incluyendo apellidos y fecha de nacimiento estructurada
                                         val datosUsuario = hashMapOf(
                                             "id" to uid,
                                             "nombre" to nombre.trim(),
+                                            "apellido" to apellidoPaterno.trim(),
                                             "nametag" to nametag.trim(),
+                                            "fechaNacimiento" to "$dia/$mes/$año",
                                             "deseados" to emptyList<String>(),
                                             "carrito" to emptyList<String>(),
                                             "biblioteca" to emptyList<String>()
@@ -185,7 +183,6 @@ fun RegisterScreen(
                                             .set(datosUsuario)
                                             .addOnCompleteListener { firestoreTask ->
                                                 if (firestoreTask.isSuccessful) {
-                                                    // Una vez guardado en la BD, actualizamos el perfil de Auth y mandamos correo
                                                     val profileUpdates = userProfileChangeRequest {
                                                         displayName = nametag
                                                     }
@@ -207,8 +204,6 @@ fun RegisterScreen(
                                                     Toast.makeText(context, "Error al crear perfil en la BD: ${firestoreTask.exception?.localizedMessage}", Toast.LENGTH_LONG).show()
                                                 }
                                             }
-                                        // ========================================================
-
                                     } else {
                                         isLoading = false
                                         Toast.makeText(context, "Error: ${task.exception?.localizedMessage}", Toast.LENGTH_LONG).show()

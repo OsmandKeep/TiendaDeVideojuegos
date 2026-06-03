@@ -1,5 +1,6 @@
 package com.example.tiendadevideojuegos
 
+import android.widget.Toast
 import androidx.compose.foundation.*
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyRow
@@ -12,21 +13,21 @@ import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.getValue
+import androidx.compose.runtime.getValue // <-- IMPORTANTE: Soluciona el error de Property delegate
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import coil.compose.AsyncImage
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.tiendadevideojuegos.ViewModel.GameDetailViewModel
-import com.example.tiendadevideojuegos.ui.theme.TiendaDeVideojuegosTheme
 
 @Composable
 fun GameDetailScreen(
@@ -34,7 +35,8 @@ fun GameDetailScreen(
     viewModel: GameDetailViewModel = viewModel()
 ) {
     val colores = MaterialTheme.colorScheme
-    val juego by viewModel.videojuegoState
+    val context = LocalContext.current
+    val juego by viewModel.videojuegoState  // Ahora funciona correctamente gracias al import de getValue
     val isLoading by viewModel.isLoading
 
     LaunchedEffect(gameId) {
@@ -46,24 +48,28 @@ fun GameDetailScreen(
             CircularProgressIndicator(color = colores.primary)
         }
     } else if (juego != null) {
+        // Desestructuración segura eliminando errores de Smart Cast
+        val currentGame = juego!!
+        val precioOriginal = currentGame.precioOriginal
+        val porcentajeDescuento = currentGame.descuento
+        val precioFinal = precioOriginal * (1 - porcentajeDescuento / 100.0)
+
         Column(
             modifier = Modifier
                 .fillMaxSize()
                 .background(colores.background)
                 .verticalScroll(rememberScrollState())
         ) {
-            // Se eliminó StoreTopSection(colores) de aquí para evitar la duplicación
-
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(180.dp)
                     .padding(horizontal = 16.dp)
-                    .padding(top = 12.dp) // Pequeño espacio con el TopBar unificado
+                    .padding(top = 12.dp)
                     .clip(RoundedCornerShape(16.dp))
                     .background(colores.surfaceVariant)
             ) {
-                if (juego!!.imagenUrl.isEmpty()) {
+                if (currentGame.imagenUrl.isEmpty()) {
                     Icon(
                         Icons.Default.Gamepad,
                         contentDescription = null,
@@ -72,15 +78,15 @@ fun GameDetailScreen(
                     )
                 } else {
                     AsyncImage(
-                        model = juego!!.imagenUrl,
-                        contentDescription = "Banner de ${juego!!.titulo}",
+                        model = currentGame.imagenUrl,
+                        contentDescription = "Banner de ${currentGame.titulo}",
                         modifier = Modifier.fillMaxSize(),
                         contentScale = ContentScale.Crop
                     )
                 }
 
                 Text(
-                    text = juego!!.titulo,
+                    text = currentGame.titulo,
                     color = Color.White,
                     fontSize = 24.sp,
                     fontWeight = FontWeight.Bold,
@@ -98,9 +104,9 @@ fun GameDetailScreen(
                     horizontalArrangement = Arrangement.SpaceBetween
                 ) {
                     Column(modifier = Modifier.weight(1f)) {
-                        Text(text = juego!!.titulo, fontSize = 22.sp, fontWeight = FontWeight.ExtraBold)
-                        Text(text = "Fecha: ${juego!!.fecha}", fontSize = 14.sp, color = colores.onSurfaceVariant)
-                        Text(text = "Desarrollador: ${juego!!.desarrollador}", fontSize = 14.sp, color = colores.onSurfaceVariant)
+                        Text(text = currentGame.titulo, fontSize = 22.sp, fontWeight = FontWeight.ExtraBold)
+                        Text(text = "Fecha: ${currentGame.fecha}", fontSize = 14.sp, color = colores.onSurfaceVariant)
+                        Text(text = "Desarrollador: ${currentGame.desarrollador}", fontSize = 14.sp, color = colores.onSurfaceVariant)
                     }
                     IconButton(
                         onClick = { },
@@ -113,11 +119,13 @@ fun GameDetailScreen(
                 Spacer(modifier = Modifier.height(12.dp))
 
                 Text("Etiquetas:", fontWeight = FontWeight.Bold, fontSize = 14.sp)
+
+                // Corrección del flujo Composable para las etiquetas
                 Row(
-                    modifier = Modifier.padding(vertical = 4.dp),
+                    modifier = Modifier.padding(vertical = 4.dp).horizontalScroll(rememberScrollState()),
                     horizontalArrangement = Arrangement.spacedBy(8.dp)
                 ) {
-                    juego!!.etiquetas.forEach { etiqueta ->
+                    for (etiqueta in currentGame.etiquetas) {
                         Surface(
                             shape = RoundedCornerShape(4.dp),
                             color = colores.secondaryContainer,
@@ -132,12 +140,69 @@ fun GameDetailScreen(
                     }
                 }
 
-                Spacer(modifier = Modifier.height(16.dp))
+                Spacer(modifier = Modifier.height(20.dp))
 
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    Text("Estado: ", fontWeight = FontWeight.Bold)
-                    Button(onClick = { }, shape = RoundedCornerShape(4.dp)) {
-                        Text("Comprar")
+                Surface(
+                    modifier = Modifier.fillMaxWidth(),
+                    shape = RoundedCornerShape(12.dp),
+                    color = colores.surfaceVariant
+                ) {
+                    Row(
+                        modifier = Modifier.fillMaxWidth().padding(12.dp),
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.SpaceBetween
+                    ) {
+                        Column {
+                            if (porcentajeDescuento > 0) {
+                                Row(verticalAlignment = Alignment.CenterVertically) {
+                                    Surface(
+                                        color = colores.tertiary,
+                                        shape = RoundedCornerShape(4.dp),
+                                        modifier = Modifier.padding(end = 8.dp)
+                                    ) {
+                                        Text(
+                                            text = "-$porcentajeDescuento%",
+                                            color = colores.onTertiary,
+                                            fontWeight = FontWeight.ExtraBold,
+                                            fontSize = 14.sp,
+                                            modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp)
+                                        )
+                                    }
+                                    Text(
+                                        text = "Mex$ ${String.format("%.2f", precioOriginal)}",
+                                        style = MaterialTheme.typography.bodyMedium.copy(
+                                            textDecoration = TextDecoration.LineThrough
+                                        ),
+                                        color = colores.onSurfaceVariant.copy(alpha = 0.7f)
+                                    )
+                                }
+                                Spacer(modifier = Modifier.height(2.dp))
+                            }
+                            Text(
+                                text = "Mex$ ${String.format("%.2f", precioFinal)}",
+                                fontSize = 20.sp,
+                                fontWeight = FontWeight.Bold,
+                                color = colores.onSurface
+                            )
+                        }
+
+                        Button(
+                            onClick = {
+                                viewModel.añadirAlCarrito(gameId) { exitoso ->
+                                    if (exitoso) {
+                                        Toast.makeText(context, "¡Añadido al carrito con éxito!", Toast.LENGTH_SHORT).show()
+                                    } else {
+                                        Toast.makeText(context, "Error al añadir o sesión expirada.", Toast.LENGTH_SHORT).show()
+                                    }
+                                }
+                            },
+                            shape = RoundedCornerShape(8.dp),
+                            colors = ButtonDefaults.buttonColors(containerColor = colores.primary)
+                        ) {
+                            Icon(Icons.Default.AddShoppingCart, contentDescription = null, modifier = Modifier.size(18.dp))
+                            Spacer(modifier = Modifier.width(8.dp))
+                            Text("Añadir al carrito", fontWeight = FontWeight.Bold)
+                        }
                     }
                 }
 
@@ -146,9 +211,9 @@ fun GameDetailScreen(
                 Column(modifier = Modifier.fillMaxWidth()) {
                     Text("Descripción:", fontWeight = FontWeight.Bold)
                     Spacer(modifier = Modifier.height(4.dp))
-                    Text(text = juego!!.descripcion, fontSize = 13.sp)
+                    Text(text = currentGame.descripcion, fontSize = 13.sp)
 
-                    if (juego!!.capturas.isNotEmpty()) {
+                    if (currentGame.capturas.isNotEmpty()) {
                         Spacer(modifier = Modifier.height(20.dp))
                         Text("Capturas de pantalla:", fontWeight = FontWeight.Bold, fontSize = 14.sp)
                         Spacer(modifier = Modifier.height(8.dp))
@@ -157,7 +222,7 @@ fun GameDetailScreen(
                             horizontalArrangement = Arrangement.spacedBy(12.dp),
                             modifier = Modifier.fillMaxWidth().height(150.dp)
                         ) {
-                            items(juego!!.capturas) { urlCaptura ->
+                            items(currentGame.capturas) { urlCaptura ->
                                 Card(
                                     shape = RoundedCornerShape(12.dp),
                                     modifier = Modifier.width(260.dp).fillMaxHeight(),
@@ -178,13 +243,13 @@ fun GameDetailScreen(
                 Spacer(modifier = Modifier.height(20.dp))
                 Text("Reseñas", fontWeight = FontWeight.Bold, fontSize = 18.sp)
                 Row(modifier = Modifier.padding(vertical = 8.dp), horizontalArrangement = Arrangement.spacedBy(16.dp)) {
-                    ReseñaCard(juego!!.likes, Icons.Default.ThumbUp, colores.primary, Modifier.weight(1f))
-                    ReseñaCard(juego!!.dislikes, Icons.Default.ThumbDown, colores.error, Modifier.weight(1f))
+                    ReseñaCard(currentGame.likes, Icons.Default.ThumbUp, colores.primary, Modifier.weight(1f))
+                    ReseñaCard(currentGame.dislikes, Icons.Default.ThumbDown, colores.error, Modifier.weight(1f))
                 }
 
                 Text("Requisitos Mínimos", fontWeight = FontWeight.Bold)
                 HorizontalDivider(modifier = Modifier.padding(vertical = 4.dp), thickness = 2.dp, color = colores.primary)
-                Text(text = juego!!.requisitos, fontSize = 13.sp)
+                Text(text = currentGame.requisitos, fontSize = 13.sp)
 
                 Spacer(modifier = Modifier.height(80.dp))
             }

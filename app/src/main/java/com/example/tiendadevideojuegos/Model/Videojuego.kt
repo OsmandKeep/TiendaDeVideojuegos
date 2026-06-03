@@ -12,5 +12,7 @@ data class Videojuego(
     val likes: String = "",
     val dislikes: String = "",
     val imagenUrl: String = "", // <--- AGREGA ESTA LÍNEA
-    val capturas: List<String> = emptyList()
+    val capturas: List<String> = emptyList(),
+    val precioOriginal: Double = 0.0,
+    val descuento: Int = 0
 )

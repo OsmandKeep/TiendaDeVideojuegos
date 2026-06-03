@@ -1,45 +1,39 @@
 package com.example.tiendadevideojuegos
 
+import android.widget.Toast
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.*
+import androidx.compose.material.icons.filled.Delete
+import androidx.compose.material.icons.filled.Gamepad
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextDecoration
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-
-data class CartItem(
-    val name: String,
-    val originalPrice: Double,
-    val discountPercentage: Int,
-    val icon: ImageVector
-) {
-    val finalPrice: Double
-        get() = originalPrice * (1 - discountPercentage / 100.0)
-}
+import androidx.lifecycle.viewmodel.compose.viewModel
+import coil.compose.AsyncImage
 
 @Composable
-fun CartScreen() {
+fun CartScreen(
+    cartViewModel: CartViewModel = viewModel()
+) {
     val colores = MaterialTheme.colorScheme
+    val context = LocalContext.current
+    val cartItems = cartViewModel.cartItems
 
-    val cartItems = listOf(
-        CartItem("Trepang2", 349.99, 66, Icons.Default.Shield),
-        CartItem("CODE VEIN Deluxe Edition", 1499.00, 85, Icons.Default.Casino),
-        CartItem("Mortal Kombat 11", 150.00, 0, Icons.Default.Person),
-        CartItem("Elden Ring", 1200.00, 10, Icons.Default.Star)
-    )
-
+    // El total se calcula automáticamente basándose en los elementos reales de la BD
     val total = cartItems.sumOf { it.finalPrice }
 
     Column(
@@ -48,8 +42,6 @@ fun CartScreen() {
             .background(colores.background)
             .padding(horizontal = 16.dp)
     ) {
-        // Se eliminó HeaderSection() de aquí para usar el TopBar global
-
         Text(
             text = "Carrito de Compras",
             style = MaterialTheme.typography.headlineMedium,
@@ -58,13 +50,28 @@ fun CartScreen() {
             modifier = Modifier.padding(vertical = 16.dp)
         )
 
-        LazyColumn(
-            modifier = Modifier.weight(1f),
-            verticalArrangement = Arrangement.spacedBy(12.dp),
-            contentPadding = PaddingValues(bottom = 16.dp)
-        ) {
-            items(cartItems) { item ->
-                CartItemCard(item)
+        if (cartItems.isEmpty()) {
+            Box(
+                modifier = Modifier.weight(1f).fillMaxWidth(),
+                contentAlignment = Alignment.Center
+            ) {
+                Text(
+                    text = "Tu carrito está vacío",
+                    color = colores.onSurfaceVariant,
+                    fontSize = 16.sp
+                )
+            }
+        } else {
+            LazyColumn(
+                modifier = Modifier.weight(1f),
+                verticalArrangement = Arrangement.spacedBy(12.dp),
+                contentPadding = PaddingValues(bottom = 16.dp)
+            ) {
+                items(cartItems) { item ->
+                    CartItemCard(item, onDeleteClick = {
+                        cartViewModel.eliminarDelCarrito(item.id)
+                    })
+                }
             }
         }
 
@@ -84,7 +91,13 @@ fun CartScreen() {
             Spacer(modifier = Modifier.height(12.dp))
 
             Button(
-                onClick = { },
+                onClick = {
+                    if (cartItems.isNotEmpty()) {
+                        cartViewModel.limpiarCarrito()
+                        Toast.makeText(context, "¡Compra realizada con éxito!", Toast.LENGTH_LONG).show()
+                    }
+                },
+                enabled = cartItems.isNotEmpty(),
                 shape = RoundedCornerShape(8.dp),
                 colors = ButtonDefaults.buttonColors(
                     containerColor = colores.primary,
@@ -101,9 +114,8 @@ fun CartScreen() {
 }
 
 @Composable
-fun CartItemCard(item: CartItem) {
+fun CartItemCard(item: CartItem, onDeleteClick: () -> Unit) {
     val colores = MaterialTheme.colorScheme
-    val accentColor = colores.primary
 
     Row(
         modifier = Modifier
@@ -113,36 +125,47 @@ fun CartItemCard(item: CartItem) {
             .padding(8.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
+        // Renderizado de Imagen dinámica desde la base de datos con Coil
         Box(
             modifier = Modifier
                 .size(70.dp)
                 .clip(RoundedCornerShape(4.dp))
-                .background(accentColor.copy(alpha = 0.1f)),
+                .background(colores.primary.copy(alpha = 0.1f)),
             contentAlignment = Alignment.Center
         ) {
-            Icon(item.icon, null, tint = accentColor, modifier = Modifier.size(35.dp))
+            if (item.imagenUrl.isEmpty()) {
+                Icon(Icons.Default.Gamepad, null, tint = colores.primary, modifier = Modifier.size(35.dp))
+            } else {
+                AsyncImage(
+                    model = item.imagenUrl,
+                    contentDescription = item.titulo,
+                    modifier = Modifier.fillMaxSize(),
+                    contentScale = ContentScale.Crop
+                )
+            }
         }
 
         Text(
-            text = item.name,
+            text = item.titulo,
             modifier = Modifier
                 .weight(1f)
                 .padding(horizontal = 12.dp),
             fontWeight = FontWeight.Bold,
             fontSize = 14.sp,
             color = colores.onSurfaceVariant,
-            maxLines = 2
+            maxLines = 2,
+            overflow = TextOverflow.Ellipsis
         )
 
         Row(verticalAlignment = Alignment.CenterVertically) {
-            if (item.discountPercentage > 0) {
+            if (item.descuento > 0) {
                 Surface(
                     color = colores.tertiary,
                     modifier = Modifier.padding(end = 6.dp),
                     shape = RoundedCornerShape(4.dp)
                 ) {
                     Text(
-                        text = "-${item.discountPercentage}%",
+                        text = "-${item.descuento}%",
                         color = colores.onTertiary,
                         fontWeight = FontWeight.ExtraBold,
                         fontSize = 12.sp,
@@ -152,9 +175,9 @@ fun CartItemCard(item: CartItem) {
             }
 
             Column(horizontalAlignment = Alignment.End) {
-                if (item.discountPercentage > 0) {
+                if (item.descuento > 0) {
                     Text(
-                        text = "Mex$ ${String.format("%.2f", item.originalPrice)}",
+                        text = "Mex$ ${String.format("%.2f", item.precioOriginal)}",
                         style = MaterialTheme.typography.bodySmall.copy(
                             textDecoration = TextDecoration.LineThrough
                         ),
@@ -171,10 +194,10 @@ fun CartItemCard(item: CartItem) {
             }
         }
 
-        IconButton(onClick = { }) {
+        IconButton(onClick = onDeleteClick) {
             Icon(
                 imageVector = Icons.Default.Delete,
-                contentDescription = null,
+                contentDescription = "Eliminar del carrito",
                 tint = colores.onSurfaceVariant.copy(alpha = 0.6f),
                 modifier = Modifier.size(20.dp)
             )
