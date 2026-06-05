@@ -17,7 +17,7 @@ import androidx.compose.ui.unit.sp
 
 @Composable
 fun StoreTopBar(
-    onUserClick: () -> Unit // <-- NUEVO: Parámetro para detectar el clic en el usuario
+    onUserClick: () -> Unit
 ) {
     val colores = MaterialTheme.colorScheme
 
@@ -66,8 +66,8 @@ fun StoreTopBar(
             tint = colores.primary,
             modifier = Modifier
                 .size(50.dp)
-                .clip(RoundedCornerShape(25.dp)) // Asegura que el efecto de clic sea circular
-                .clickable { onUserClick() }    // <-- NUEVO: Dispara la apertura del menú lateral
+                .clip(RoundedCornerShape(25.dp))
+                .clickable { onUserClick() }
         )
     }
 }

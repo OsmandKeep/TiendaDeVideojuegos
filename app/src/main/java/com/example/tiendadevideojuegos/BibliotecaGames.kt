@@ -114,7 +114,7 @@ fun GameCard(
                 )
             }
 
-            // ETIQUETA DE LOGROS REQUERIDA
+            // ETIQUETA DE LOGROS
             Surface(
                 modifier = Modifier
                     .align(Alignment.TopEnd)
@@ -131,7 +131,6 @@ fun GameCard(
                 )
             }
 
-            // Sombra para asegurar legibilidad del texto sobre cualquier banner
             Box(
                 modifier = Modifier
                     .fillMaxWidth()

@@ -13,7 +13,6 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import com.example.tiendadevideojuegos.ui.theme.TiendaDeVideojuegosTheme
-// IMPORT DE FIREBASE
 import com.google.firebase.auth.FirebaseAuth
 
 class MainActivity : ComponentActivity() {
@@ -32,7 +31,6 @@ class MainActivity : ComponentActivity() {
 fun MainApp() {
     val auth = remember { FirebaseAuth.getInstance() }
 
-    // TRUCO: Si el usuario ya existe localmente y está verificado, entra directo
     var isLoggedIn by remember {
         mutableStateOf(auth.currentUser != null && auth.currentUser!!.isEmailVerified)
     }
@@ -40,7 +38,6 @@ fun MainApp() {
     if (!isLoggedIn) {
         AppNavigation(onLoginSuccess = { isLoggedIn = true })
     } else {
-        // Le pasamos la función de cerrar sesión para que pueda regresar al Login
         MainAppContent(onLogout = {
             auth.signOut()
             isLoggedIn = false
@@ -67,10 +64,9 @@ fun AppNavigation(onLoginSuccess: () -> Unit) {
 fun MainAppContent(onLogout: () -> Unit) {
     var selectedTab by rememberSaveable { mutableStateOf(0) }
 
-    // CORRECCIÓN: Le pasamos los tres parámetros requeridos por tu SimpleNavBar con Drawer
     SimpleNavBar(
         currentScreen = selectedTab,
         onScreenChange = { selectedTab = it },
-        onLogout = onLogout // <-- Pasamos el callback de cierre de sesión hacia el menú lateral
+        onLogout = onLogout
     )
 }

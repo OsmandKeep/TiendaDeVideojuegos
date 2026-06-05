@@ -22,21 +22,17 @@ fun SimpleNavBar(
     val drawerState = rememberDrawerState(initialValue = DrawerValue.Closed)
     val scope = rememberCoroutineScope()
 
-    // Intercepta el botón "Atrás" físico del teléfono para cerrar el menú si está abierto
     if (drawerState.isOpen) {
         androidx.activity.compose.BackHandler {
             scope.launch { drawerState.close() }
         }
     }
 
-    // TRUCO DE ORIENTACIÓN: Forzamos a que el Drawer entienda que el "Inicio" es la derecha (Rtl)
     CompositionLocalProvider(LocalLayoutDirection provides LayoutDirection.Rtl) {
         ModalNavigationDrawer(
             drawerState = drawerState,
-            // CORRECCIÓN EXTRA: Deshabilita el arrastrado accidental cuando está cerrado
             gesturesEnabled = drawerState.isOpen,
             drawerContent = {
-                // Restauramos la dirección normal (Ltr) ADENTRO del menú para que las letras y botones no salgan al revés
                 CompositionLocalProvider(LocalLayoutDirection provides LayoutDirection.Ltr) {
                     ModalDrawerSheet(
                         modifier = Modifier.width(280.dp)
@@ -63,7 +59,6 @@ fun SimpleNavBar(
                 }
             }
         ) {
-            // Restauramos la dirección normal (Ltr) para todo el Scaffold (Barras y contenido central)
             CompositionLocalProvider(LocalLayoutDirection provides LayoutDirection.Ltr) {
                 Scaffold(
                     topBar = {

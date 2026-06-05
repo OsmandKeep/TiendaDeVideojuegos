@@ -42,7 +42,6 @@ fun HomeScreen(
             .background(colores.background)
             .padding(horizontal = 16.dp)
     ) {
-        // ELIMINADO: StoreTopSection(colores) ya no se invoca aquí de forma local
 
         Column(modifier = Modifier.verticalScroll(rememberScrollState())) {
             Spacer(modifier = Modifier.height(16.dp))

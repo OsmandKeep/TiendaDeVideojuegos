@@ -13,7 +13,7 @@ import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.getValue // <-- IMPORTANTE: Soluciona el error de Property delegate
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -36,7 +36,7 @@ fun GameDetailScreen(
 ) {
     val colores = MaterialTheme.colorScheme
     val context = LocalContext.current
-    val juego by viewModel.videojuegoState  // Ahora funciona correctamente gracias al import de getValue
+    val juego by viewModel.videojuegoState
     val isLoading by viewModel.isLoading
 
     LaunchedEffect(gameId) {
@@ -48,7 +48,6 @@ fun GameDetailScreen(
             CircularProgressIndicator(color = colores.primary)
         }
     } else if (juego != null) {
-        // Desestructuración segura eliminando errores de Smart Cast
         val currentGame = juego!!
         val precioOriginal = currentGame.precioOriginal
         val porcentajeDescuento = currentGame.descuento
@@ -120,7 +119,6 @@ fun GameDetailScreen(
 
                 Text("Etiquetas:", fontWeight = FontWeight.Bold, fontSize = 14.sp)
 
-                // Corrección del flujo Composable para las etiquetas
                 Row(
                     modifier = Modifier.padding(vertical = 4.dp).horizontalScroll(rememberScrollState()),
                     horizontalArrangement = Arrangement.spacedBy(8.dp)

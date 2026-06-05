@@ -9,7 +9,7 @@ import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
-import androidx.compose.runtime.saveable.rememberSaveable // <--- IMPORTADO PARA SOBREVIVIR A CAMBIOS DE TEMA
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
@@ -22,7 +22,6 @@ import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.Email
 import androidx.compose.material.icons.filled.Lock
 
-// Imports de Firebase necesarios
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.FirebaseNetworkException
 
@@ -31,7 +30,6 @@ import com.google.firebase.FirebaseNetworkException
 fun ForgotPasswordScreen(
     onBackToLogin: () -> Unit
 ) {
-    // Cambiados a rememberSaveable para que el correo y el estado de carga no se pierdan al cambiar de tema
     var email by rememberSaveable { mutableStateOf("") }
     var isLoading by rememberSaveable { mutableStateOf(false) }
 
@@ -131,7 +129,7 @@ fun ForgotPasswordScreen(
 
         Spacer(modifier = Modifier.height(32.dp))
 
-        // --- CAMPO DE TEXTO: CORREO ---
+        // --- CAMPO DE TEXTO CORREO ---
         OutlinedTextField(
             value = email,
             onValueChange = { email = it },
@@ -161,7 +159,6 @@ fun ForgotPasswordScreen(
                 if (emailInput.isNotEmpty() && emailInput.contains("@")) {
                     isLoading = true
 
-                    // Lógica nativa de Firebase para reestablecer contraseñas
                     auth.sendPasswordResetEmail(emailInput)
                         .addOnCompleteListener { task ->
                             isLoading = false
@@ -171,7 +168,6 @@ fun ForgotPasswordScreen(
                                     "Enlace enviado con éxito. ¡Revisa tu correo electrónico!",
                                     Toast.LENGTH_LONG
                                 ).show()
-                                // Devolvemos al usuario a la pantalla de login
                                 onBackToLogin()
                             } else {
                                 val exception = task.exception

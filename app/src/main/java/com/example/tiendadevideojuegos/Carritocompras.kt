@@ -33,7 +33,6 @@ fun CartScreen(
     val context = LocalContext.current
     val cartItems = cartViewModel.cartItems
 
-    // El total se calcula automáticamente basándose en los elementos reales de la BD
     val total = cartItems.sumOf { it.finalPrice }
 
     Column(
@@ -90,13 +89,10 @@ fun CartScreen(
 
             Spacer(modifier = Modifier.height(12.dp))
 
-            // ========================================================
             // BOTÓN DE ACCIÓN COMPRA TRANSACCIONAL ASOCIADO A BIBLIOTECA
-            // ========================================================
             Button(
                 onClick = {
                     if (cartItems.isNotEmpty()) {
-                        // Cambiado para invocar la transacción que muda los juegos a tu nueva LibraryScreen
                         cartViewModel.procesarCompraExitosa { exitoso ->
                             if (exitoso) {
                                 Toast.makeText(
@@ -126,7 +122,6 @@ fun CartScreen(
             ) {
                 Text("COMPRAR", fontWeight = FontWeight.ExtraBold, fontSize = 16.sp)
             }
-            // ========================================================
         }
     }
 }

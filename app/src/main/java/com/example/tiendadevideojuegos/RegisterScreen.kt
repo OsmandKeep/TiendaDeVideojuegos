@@ -54,7 +54,6 @@ fun RegisterScreen(
     val colores = MaterialTheme.colorScheme
     val auth = remember { FirebaseAuth.getInstance() }
 
-    // Obtención de la fecha actual del sistema para las validaciones dinámicas
     val calendarioActual = Calendar.getInstance()
     val añoActual = calendarioActual.get(Calendar.YEAR)
     val mesActual = calendarioActual.get(Calendar.MONTH) + 1
@@ -97,7 +96,6 @@ fun RegisterScreen(
         SectionHeader(text = "Información Personal", color = colores.primary)
         Spacer(modifier = Modifier.height(12.dp))
 
-        // Filtro estricto: Solo permite letras y espacios en el Nombre
         CustomOutlinedField(
             value = nombre,
             onValueChange = { input ->
@@ -111,7 +109,6 @@ fun RegisterScreen(
 
         Spacer(modifier = Modifier.height(12.dp))
 
-        // Filtro estricto: Solo permite letras y espacios en el Apellido
         CustomOutlinedField(
             value = apellidoPaterno,
             onValueChange = { input ->
@@ -125,7 +122,6 @@ fun RegisterScreen(
 
         Spacer(modifier = Modifier.height(12.dp))
 
-        // Fila unificada para la fecha de nacimiento
         Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
             CustomOutlinedField(
                 value = dia,
