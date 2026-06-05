@@ -10,6 +10,7 @@ data class CartItem(
     val precioOriginal: Double = 0.0,
     val descuento: Int = 0
 ) {
+
     val finalPrice: Double
         get() = precioOriginal * (1 - descuento / 100.0)
 }
