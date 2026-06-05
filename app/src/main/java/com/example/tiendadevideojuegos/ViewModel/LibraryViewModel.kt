@@ -57,7 +57,7 @@ class LibraryViewModel : ViewModel() {
                         libraryItems.clear()
                         libraryItems.addAll(listaTemporal)
                     } catch (e: Exception) {
-                        // Manejo de errores de conexión
+
                     }
                 }
             }

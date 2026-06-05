@@ -1,6 +1,5 @@
 package com.example.tiendadevideojuegos
 
-// Esta clase sirve tanto para el Carrito como para mapear los datos base de Firestore
 data class CartItem(
     val id: String = "",
     val titulo: String = "",
@@ -8,10 +7,9 @@ data class CartItem(
     val desarrollador: String = "",
     val fecha: String = "",
     val imagenUrl: String = "",
-    val precioOriginal: Double = 0.0, // <-- Mapea directamente el "number" de Firebase
-    val descuento: Int = 0            // <-- Mapea directamente el "number" de Firebase
+    val precioOriginal: Double = 0.0,
+    val descuento: Int = 0
 ) {
-    // Propiedad calculada automáticamente en base a los campos de la BD
     val finalPrice: Double
         get() = precioOriginal * (1 - descuento / 100.0)
 }

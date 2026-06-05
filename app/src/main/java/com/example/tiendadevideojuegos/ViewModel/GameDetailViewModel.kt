@@ -7,7 +7,7 @@ import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FieldValue
 import com.google.firebase.firestore.FirebaseFirestore
 
-// Estructura de datos explícita para evitar errores de referencia ("Unresolved reference Model")
+// Estructura de datos
 data class Videojuego(
     val id: String = "",
     val titulo: String = "",
@@ -27,7 +27,6 @@ data class Videojuego(
 class GameDetailViewModel : ViewModel() {
     private val db = FirebaseFirestore.getInstance()
 
-    // Estado explícitamente tipado para evitar el error "Null cannot be a value of a non-null type"
     private val _videojuegoState = mutableStateOf<Videojuego?>(null)
     val videojuegoState: State<Videojuego?> = _videojuegoState
 
@@ -40,7 +39,6 @@ class GameDetailViewModel : ViewModel() {
             .get()
             .addOnSuccessListener { document ->
                 if (document != null && document.exists()) {
-                    // Mapeo seguro corrigiendo el error de inferencia de tipos
                     val juego = document.toObject(Videojuego::class.java)?.copy(id = document.id)
                     _videojuegoState.value = juego
                 }
